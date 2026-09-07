@@ -1,0 +1,57 @@
+{
+  "name": "@markscript/markscript",
+  "version": "0.1.0",
+  "description": "Markdown-first document programming with TypeScript and MDAST",
+  "keywords": [
+    "markscript",
+    "markdown",
+    "mdast",
+    "mdx",
+    "typescript",
+    "document-generation"
+  ],
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/markscript"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "type": "module",
+  "bin": {
+    "markscript": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "bun": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@markscript/compiler": "workspace:*",
+    "@markscript/manuals": "workspace:*",
+    "citty": "^0.1.6",
+    "mdast-util-frontmatter": "^2.0.1",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-to-markdown": "^2.1.2"
+  },
+  "peerDependencies": {
+    "@markscript/runtime": "^0.1.0"
+  }
+}

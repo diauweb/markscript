@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="generator" content="msdocs">
+  <title>{{it.pageTitle}}{{@if(it.pageTitle !== it.siteTitle)}} · {{it.siteTitle}}{{/if}}</title>
+  <link rel="stylesheet" href="{{it.stylesUrl}}">
+</head>
+<body{{@if(it.bodyClass)}} class="{{it.bodyClass}}"{{/if}}>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    {{@if(it.hasSiteNavigation)}}
+    <button class="menu-button" type="button" data-menu aria-expanded="false" aria-controls="site-navigation">Menu</button>
+    {{/if}}
+    <a class="site-title" href="{{it.homeUrl}}">{{it.siteTitle}}</a>
+  </header>
+  <div class="layout">
+    {{@if(it.hasSiteNavigation)}}
+    <aside class="sidebar" id="site-navigation" data-sidebar data-open="false">
+      <a class="brand" href="{{it.homeUrl}}">{{it.siteTitle}}</a>
+      <input class="search" type="search" placeholder="Filter pages…" aria-label="Filter navigation" data-search>
+      <nav aria-label="Documentation">
+        <ul class="nav-list">
+          <li class="nav-item" data-nav-item>
+            <a class="nav-link" href="{{it.home.href}}"{{@if(it.home.current)}} aria-current="page"{{/if}}>{{it.home.title}}</a>
+          </li>
+        </ul>
+        {{@each(it.sections) => section}}
+        <section class="nav-section">
+          <h2 class="nav-heading">{{section.title}}</h2>
+          <ul class="nav-list">
+            {{@each(section.pages) => navPage}}
+            <li class="nav-item" data-nav-item>
+              <a class="nav-link" href="{{navPage.href}}"{{@if(navPage.current)}} aria-current="page"{{/if}}>{{navPage.title}}</a>
+            </li>
+            {{/each}}
+          </ul>
+        </section>
+        {{/each}}
+      </nav>
+    </aside>
+    {{/if}}
+    <div class="content-shell">
+      <div class="content-layout">
+        <main class="content" id="content" tabindex="-1">
+          {{*it.content}}
+          <footer class="page-footer">Built with msdocs.</footer>
+        </main>
+        {{@if(it.tableOfContents.length)}}
+        <aside class="page-toc">
+          <nav aria-label="On this page">
+            <h2>On this page</h2>
+            <ul>
+              {{@each(it.tableOfContents) => item}}
+              <li class="{{item.depthClass}}"><a href="{{item.href}}">{{item.title}}</a></li>
+              {{/each}}
+            </ul>
+          </nav>
+        </aside>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  <script src="{{it.scriptUrl}}"></script>
+</body>
+</html>

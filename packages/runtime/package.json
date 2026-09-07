@@ -1,0 +1,57 @@
+{
+  "name": "@markscript/runtime",
+  "version": "0.1.0",
+  "description": "JSX runtime and document lifecycle for MarkScript and MDAST",
+  "keywords": [
+    "markscript",
+    "markdown",
+    "mdast",
+    "mdx",
+    "typescript",
+    "document-generation"
+  ],
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/runtime"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "bun": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./types/jsx-runtime.d.ts",
+      "bun": "./dist/jsx-runtime.js",
+      "default": "./dist/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./types/jsx-dev-runtime.d.ts",
+      "bun": "./dist/jsx-dev-runtime.js",
+      "default": "./dist/jsx-dev-runtime.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@types/mdast": "^4.0.4",
+    "@markscript/mdast-util-mdx-directive": "workspace:*"
+  }
+}

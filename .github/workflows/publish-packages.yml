@@ -1,0 +1,63 @@
+name: Release packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish to npmjs after verification (requires npm trusted publishers)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-packages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          scope: '@markscript'
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun run check
+      - run: bun run --cwd packages/vscode-markscript smoke:lsp
+      - name: Pack and check isolated installation
+        run: |
+          bash scripts/pack.sh "$RUNNER_TEMP/packages"
+          mkdir "$RUNNER_TEMP/consumer"
+          cp scripts/smoke-packages.ts "$RUNNER_TEMP/consumer/smoke.ts"
+          cd "$RUNNER_TEMP/consumer"
+          echo '{"private":true,"type":"module"}' > package.json
+          npm install --ignore-scripts --no-audit --no-fund "$RUNNER_TEMP"/packages/*.tgz
+          bun smoke.ts
+      - name: Publish packages
+        if: inputs.publish
+        run: |
+          for archive in "$RUNNER_TEMP"/packages/*.tgz; do
+            npm publish "$archive" --registry=https://registry.npmjs.org --access=public --provenance --ignore-scripts
+          done
+      - name: Check registry installation
+        if: inputs.publish
+        run: |
+          mkdir "$RUNNER_TEMP/registry-consumer"
+          cp scripts/smoke-packages.ts "$RUNNER_TEMP/registry-consumer/smoke.ts"
+          mapfile -t packages < <(bun -e 'for (const file of new Bun.Glob("packages/*/package.json").scanSync(".")) { const p = await Bun.file(file).json(); if (!p.private) console.log(`${p.name}@${p.version}`) }')
+          cd "$RUNNER_TEMP/registry-consumer"
+          echo '{"private":true,"type":"module"}' > package.json
+          npm install --ignore-scripts --no-audit --no-fund "${packages[@]}"
+          bun smoke.ts

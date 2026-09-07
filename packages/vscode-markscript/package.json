@@ -1,0 +1,302 @@
+{
+  "name": "markscript-vscode",
+  "displayName": "MarkScript",
+  "description": "Language support for MarkScript documents.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "markscript",
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/vscode-markscript"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "type": "module",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "keywords": [
+    "MarkScript",
+    "Markdown",
+    "MDX",
+    "TypeScript"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:markscript",
+    "workspaceContains:**/*.ms",
+    "onCommand:markscript.restartLanguageServer",
+    "onCommand:markscript.findFileReferences",
+    "onCommand:markscript.reloadProjects",
+    "onCommand:markscript.openTsConfig",
+    "onCommand:markscript.selectTypeScriptVersion",
+    "onCommand:markscript.checkFile",
+    "onCommand:markscript.checkWorkspace",
+    "onCommand:markscript.runFile",
+    "onCommand:markscript.showLanguageServerOutput"
+  ],
+  "scripts": {
+    "build": "bun run build.ts",
+    "check": "tsc --noEmit -p tsconfig.build.json",
+    "package:vsix": "bun run build && bun scripts/package-vsix.ts",
+    "smoke:lsp": "bun scripts/smoke-lsp.ts",
+    "test:extension-host": "bun run build && bun scripts/run-extension-tests.ts"
+  },
+  "contributes": {
+    "languages": [
+      {
+        "id": "markscript",
+        "aliases": [
+          "MarkScript",
+          "markscript"
+        ],
+        "extensions": [
+          ".ms"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "markscript",
+        "scopeName": "source.markscript",
+        "path": "./syntaxes/markscript.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.expression.markscript": "typescriptreact",
+          "meta.embedded.esm.markscript": "typescriptreact",
+          "meta.embedded.tag.markscript": "typescriptreact",
+          "meta.tag.component.markscript": "typescriptreact"
+        }
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "typescriptPunctuation",
+        "superType": "operator",
+        "description": "Punctuation inside projected TypeScript and TSX regions."
+      },
+      {
+        "id": "markscriptPunctuation",
+        "description": "Syntax punctuation parsed by MarkScript."
+      },
+      {
+        "id": "markdownHeading",
+        "description": "Markdown heading content."
+      },
+      {
+        "id": "markdownEmphasis",
+        "description": "Markdown emphasized content."
+      },
+      {
+        "id": "markdownStrong",
+        "description": "Markdown strongly emphasized content."
+      },
+      {
+        "id": "markdownStrikethrough",
+        "description": "Markdown strikethrough content."
+      },
+      {
+        "id": "markdownCode",
+        "description": "Markdown inline or fenced code."
+      },
+      {
+        "id": "markdownLink",
+        "description": "Markdown link, image, or definition."
+      },
+      {
+        "id": "markdownQuote",
+        "description": "Markdown block quote content."
+      },
+      {
+        "id": "markdownList",
+        "description": "Markdown list marker."
+      },
+      {
+        "id": "markdownTable",
+        "description": "Markdown table content."
+      },
+      {
+        "id": "mdxTag",
+        "superType": "type",
+        "description": "Parsed MarkScript intrinsic tag."
+      },
+      {
+        "id": "mdxAttribute",
+        "superType": "property",
+        "description": "Parsed MarkScript tag attribute."
+      },
+      {
+        "id": "mdxExpression",
+        "superType": "operator",
+        "description": "MarkScript expression boundary."
+      },
+      {
+        "id": "directive",
+        "superType": "decorator",
+        "description": "MarkScript directive attachment or group."
+      },
+      {
+        "id": "mdxTagDelimiter",
+        "description": "Opening and closing delimiters of MarkScript MDX-shaped tags."
+      }
+    ],
+    "semanticTokenScopes": [
+      {
+        "language": "markscript",
+        "scopes": {
+          "typescriptPunctuation": [
+            "punctuation.definition.block.ts",
+            "punctuation.definition.parameters.ts",
+            "punctuation.separator.comma.ts",
+            "punctuation.accessor.ts"
+          ],
+          "markscriptPunctuation": [
+            "punctuation.definition.markdown"
+          ],
+          "markdownHeading": [
+            "markup.heading.markdown"
+          ],
+          "markdownEmphasis": [
+            "markup.italic.markdown"
+          ],
+          "markdownStrong": [
+            "markup.bold.markdown"
+          ],
+          "markdownStrikethrough": [
+            "markup.strikethrough.markdown"
+          ],
+          "markdownCode": [
+            "markup.inline.raw.markdown",
+            "markup.fenced_code.block.markdown"
+          ],
+          "markdownLink": [
+            "markup.underline.link.markdown"
+          ],
+          "markdownQuote": [
+            "markup.quote.markdown"
+          ],
+          "markdownList": [
+            "punctuation.definition.list.begin.markdown"
+          ],
+          "markdownTable": [
+            "markup.other.table.markdown"
+          ],
+          "mdxTag": [
+            "entity.name.tag.markdown.markscript"
+          ],
+          "mdxAttribute": [
+            "entity.other.attribute-name.tsx",
+            "entity.other.attribute-name"
+          ],
+          "mdxExpression": [
+            "punctuation.section.embedded.markscript"
+          ],
+          "directive": [
+            "entity.name.function.decorator.ts",
+            "entity.name.function.directive.markscript"
+          ],
+          "mdxTagDelimiter": [
+            "punctuation.definition.block.tsx"
+          ],
+          "macro": [
+            "entity.name.function.ts",
+            "support.class.component.tsx"
+          ]
+        }
+      }
+    ],
+    "configurationDefaults": {
+      "[markscript]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
+    "commands": [
+      {
+        "command": "markscript.checkFile",
+        "title": "MarkScript: Check File",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.checkWorkspace",
+        "title": "MarkScript: Check Workspace",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.runFile",
+        "title": "MarkScript: Run File",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.restartLanguageServer",
+        "title": "MarkScript: Restart Language Server",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.findFileReferences",
+        "title": "MarkScript: Find File References",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.reloadProjects",
+        "title": "MarkScript: Reload Projects",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.openTsConfig",
+        "title": "MarkScript: Open Project Configuration",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.selectTypeScriptVersion",
+        "title": "MarkScript: Select TypeScript Version",
+        "category": "MarkScript"
+      },
+      {
+        "command": "markscript.showLanguageServerOutput",
+        "title": "MarkScript: Show Language Server Output",
+        "category": "MarkScript"
+      }
+    ],
+    "configuration": {
+      "title": "MarkScript",
+      "properties": {
+        "markscript.server.runtime": {
+          "type": "string",
+          "default": "bun",
+          "scope": "machine-overridable",
+          "markdownDescription": "Bun executable used to launch the MarkScript language server. Set an absolute path on extension hosts whose `PATH` omits `bun`."
+        },
+        "markscript.server.path": {
+          "type": "string",
+          "default": "",
+          "scope": "machine-overridable",
+          "markdownDescription": "Optional path to a custom MarkScript language-server module. Relative paths and `${workspaceFolder}` are resolved against the first workspace folder. Leave empty to use the server packaged with the extension."
+        },
+        "markscript.validation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "description": "Enable MarkScript parser and TypeScript diagnostics."
+        }
+      }
+    }
+  },
+  "devDependencies": {
+    "@volar/language-server": "2.4.28",
+    "@volar/vscode": "2.4.28",
+    "@types/vscode": "^1.96.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "3.9.2"
+  }
+}

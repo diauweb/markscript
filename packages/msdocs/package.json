@@ -1,0 +1,56 @@
+{
+  "name": "@markscript/msdocs",
+  "version": "0.1.0",
+  "description": "Static-site generation for MarkScript and MDAST",
+  "keywords": [
+    "markscript",
+    "markdown",
+    "mdast",
+    "mdx",
+    "typescript",
+    "document-generation"
+  ],
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/msdocs"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "type": "module",
+  "bin": {
+    "msdocs": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "bun": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types",
+    "public"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@markscript/compiler": "workspace:*",
+    "@types/hast": "^3.0.4",
+    "@types/mdast": "^4.0.4",
+    "citty": "^0.1.6",
+    "hast-util-to-html": "^9.0.5",
+    "mdast-util-to-hast": "^13.2.0",
+    "squirrelly": "^9.1.1"
+  }
+}

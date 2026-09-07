@@ -1,0 +1,48 @@
+{
+  "name": "@markscript/micromark-extension-mdx-directive",
+  "version": "0.1.0",
+  "description": "MarkScript fork of micromark-extension-directive with expression-valued attributes",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types",
+    "license",
+    "readme.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/micromark-extension-mdx-directive"
+  },
+  "markscriptFork": {
+    "package": "micromark-extension-directive",
+    "version": "4.0.0",
+    "repository": "https://github.com/micromark/micromark-extension-directive"
+  },
+  "dependencies": {
+    "devlop": "^1.0.0",
+    "micromark-factory-mdx-expression": "^2.0.3",
+    "micromark-factory-space": "^2.0.0",
+    "micromark-factory-whitespace": "^2.0.0",
+    "micromark-util-character": "^2.0.0",
+    "micromark-util-events-to-acorn": "^2.0.0",
+    "micromark-util-symbol": "^2.0.0",
+    "micromark-util-types": "^2.0.0",
+    "parse-entities": "^4.0.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false -p tsconfig.build.json"
+  }
+}

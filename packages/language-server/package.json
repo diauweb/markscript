@@ -1,0 +1,62 @@
+{
+  "name": "@markscript/language-server",
+  "version": "0.1.0",
+  "description": "Language server for MarkScript documents",
+  "keywords": [
+    "markscript",
+    "markdown",
+    "mdast",
+    "mdx",
+    "typescript",
+    "document-generation"
+  ],
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/language-server"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "type": "module",
+  "bin": {
+    "markscript-language-server": "./dist/server.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./types/server.d.ts",
+      "bun": "./dist/server.js",
+      "default": "./dist/server.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@markscript/compiler": "workspace:*",
+    "@markscript/language-core": "workspace:*",
+    "@markscript/manuals": "workspace:*",
+    "@markscript/runtime": "workspace:*",
+    "@volar/language-core": "2.4.28",
+    "@volar/language-server": "2.4.28",
+    "@volar/language-service": "2.4.28",
+    "typescript": "^6.0.2",
+    "volar-service-markdown": "0.0.71",
+    "volar-service-typescript": "0.0.71",
+    "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "vscode-languageserver-textdocument": "^1.0.12"
+  }
+}

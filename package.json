@@ -1,0 +1,55 @@
+{
+  "name": "markscript-workspace",
+  "private": true,
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "check": "bun run biome:check && bun run typecheck && bun test",
+    "biome:check": "biome check .",
+    "biome:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --filter './packages/*-mdx-directive' typecheck",
+    "test": "bun test",
+    "markscript": "bun packages/markscript/src/cli.ts",
+    "msdocs": "bun packages/msdocs/src/cli.ts",
+    "manual": "bun run msdocs serve packages/manuals/msdocs.config.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.7",
+    "@markscript/docx": "workspace:*",
+    "@markscript/manuals": "workspace:*",
+    "@markscript/runtime": "workspace:*",
+    "@types/bun": "^1.3.14",
+    "@types/mdast": "^4.0.4",
+    "@types/unist": "^3.0.3",
+    "@markscript/markscript": "workspace:*",
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-to-markdown": "^2.1.2",
+    "typescript": "^6.0.2",
+    "unist-util-select": "^5.1.0",
+    "unist-util-visit": "^5.1.0",
+    "vscode-oniguruma": "1.7.0",
+    "vscode-textmate": "9.3.2",
+    "@markscript/compiler": "workspace:*",
+    "prettier": "3.9.6"
+  },
+  "patchedDependencies": {
+    "docx@9.7.1": "patches/docx@9.7.1.patch"
+  }
+}

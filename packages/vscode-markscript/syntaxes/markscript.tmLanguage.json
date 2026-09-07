@@ -1,0 +1,118 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "MarkScript",
+  "scopeName": "source.markscript",
+  "patterns": [
+    { "include": "#esm" },
+    { "include": "#fragments" },
+    { "include": "#directives" },
+    { "include": "#components" },
+    { "include": "#tags" },
+    { "include": "#expressions" },
+    { "include": "text.html.markdown" }
+  ],
+  "repository": {
+    "fragments": {
+      "patterns": [
+        {
+          "name": "meta.tag.fragment.markscript",
+          "match": "(</?)(>)",
+          "captures": {
+            "1": { "name": "punctuation.definition.block.markscript" },
+            "2": { "name": "punctuation.definition.block.markscript" }
+          }
+        }
+      ]
+    },
+    "esm": {
+      "patterns": [
+        {
+          "name": "meta.embedded.esm.markscript",
+          "begin": "^(?=\\s*(?:import|export)\\b)",
+          "end": "^(?=(?!\\s)(?!(?:import|export|declare)\\b)(?![})\\]])\\S)",
+          "patterns": [{ "include": "source.tsx" }]
+        }
+      ]
+    },
+    "directives": {
+      "patterns": [
+        {
+          "name": "meta.directive.markscript",
+          "match": "(:{1,3})([A-Za-z][A-Za-z0-9-]*)",
+          "captures": {
+            "1": { "name": "punctuation.definition.directive.markscript" },
+            "2": { "name": "entity.name.function.directive.markscript" }
+          }
+        }
+      ]
+    },
+    "components": {
+      "patterns": [
+        {
+          "name": "meta.tag.component.markscript",
+          "begin": "(<)(/?)([A-Z_$][A-Za-z0-9_$]*(?:\\.[A-Za-z_$][A-Za-z0-9_$]*)*)(?=\\s|/?>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.block.markscript" },
+            "2": { "name": "punctuation.definition.block.markscript" },
+            "3": {
+              "name": "entity.name.tag.component.markscript support.class.component.markscript"
+            }
+          },
+          "end": "(/?>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.block.markscript" }
+          },
+          "applyEndPatternLast": true,
+          "contentName": "meta.embedded.tag.markscript",
+          "patterns": [
+            { "include": "#expressions" },
+            { "include": "source.tsx" }
+          ]
+        }
+      ]
+    },
+    "tags": {
+      "patterns": [
+        {
+          "name": "meta.tag.markscript",
+          "begin": "(<)(/?)([A-Za-z][A-Za-z0-9_.:-]*)(?=\\s|/?>)",
+          "beginCaptures": {
+            "1": { "name": "punctuation.definition.block.markscript" },
+            "2": { "name": "punctuation.definition.block.markscript" },
+            "3": { "name": "entity.name.tag.markdown.markscript" }
+          },
+          "end": "(/?>)",
+          "endCaptures": {
+            "1": { "name": "punctuation.definition.block.markscript" }
+          },
+          "applyEndPatternLast": true,
+          "contentName": "meta.embedded.tag.markscript",
+          "patterns": [
+            { "include": "#expressions" },
+            { "include": "source.tsx" }
+          ]
+        }
+      ]
+    },
+    "expressions": {
+      "patterns": [
+        {
+          "name": "meta.embedded.expression.markscript",
+          "begin": "\\{",
+          "beginCaptures": {
+            "0": { "name": "punctuation.section.embedded.begin.markscript" }
+          },
+          "end": "\\}",
+          "endCaptures": {
+            "0": { "name": "punctuation.section.embedded.end.markscript" }
+          },
+          "applyEndPatternLast": true,
+          "patterns": [
+            { "include": "#expressions" },
+            { "include": "source.tsx" }
+          ]
+        }
+      ]
+    }
+  }
+}

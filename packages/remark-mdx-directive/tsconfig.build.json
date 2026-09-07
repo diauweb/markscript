@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src",
+    "outDir": "types",
+    "declaration": true,
+    "declarationMap": true,
+    "emitDeclarationOnly": true,
+    "rewriteRelativeImportExtensions": true,
+    "allowJs": true,
+    "checkJs": true,
+    "noUncheckedIndexedAccess": false,
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src/**/*.ts", "src/**/*.js"]
+}

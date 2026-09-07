@@ -1,0 +1,222 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 87c6a82..1c397bd 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -9192,7 +9192,7 @@ var ThematicBreak = class extends XmlComponent {
+ * </xsd:complexType>
+ * ```
+ */
+-var createIndent = ({ start, end, left, right, hanging, firstLine, firstLineChars }) => new BuilderElement({
++var createIndent = ({ start, end, left, right, hanging, firstLine, leftChars, rightChars, hangingChars, firstLineChars }) => new BuilderElement({
+ 	name: "w:ind",
+ 	attributes: {
+ 		start: {
+@@ -9219,6 +9219,18 @@ var createIndent = ({ start, end, left, right, hanging, firstLine, firstLineChar
+ 			key: "w:firstLine",
+ 			value: firstLine === void 0 ? void 0 : twipsMeasureValue(firstLine)
+ 		},
++		leftChars: {
++			key: "w:leftChars",
++			value: leftChars === void 0 ? void 0 : decimalNumber(leftChars)
++		},
++		rightChars: {
++			key: "w:rightChars",
++			value: rightChars === void 0 ? void 0 : decimalNumber(rightChars)
++		},
++		hangingChars: {
++			key: "w:hangingChars",
++			value: hangingChars === void 0 ? void 0 : decimalNumber(hangingChars)
++		},
+ 		firstLineChars: {
+ 			key: "w:firstLineChars",
+ 			value: firstLineChars === void 0 ? void 0 : decimalNumber(firstLineChars)
+@@ -16376,7 +16388,7 @@ var LineRuleType = {
+ * });
+ * ```
+ */
+-var createSpacing = ({ after, before, line, lineRule, beforeAutoSpacing, afterAutoSpacing }) => new BuilderElement({
++var createSpacing = ({ after, before, beforeLines, afterLines, line, lineRule, beforeAutoSpacing, afterAutoSpacing }) => new BuilderElement({
+ 	name: "w:spacing",
+ 	attributes: {
+ 		after: {
+@@ -16387,6 +16399,14 @@ var createSpacing = ({ after, before, line, lineRule, beforeAutoSpacing, afterAu
+ 			key: "w:before",
+ 			value: before
+ 		},
++		beforeLines: {
++			key: "w:beforeLines",
++			value: beforeLines
++		},
++		afterLines: {
++			key: "w:afterLines",
++			value: afterLines
++		},
+ 		line: {
+ 			key: "w:line",
+ 			value: line
+@@ -26831,10 +26851,14 @@ var File = class {
+ 		});
+ 		this.media = new Media();
+ 		if (options.externalStyles !== void 0) {
+-			var _options$styles;
+-			const defaultStyles = new DefaultStylesFactory().newInstance((_options$styles = options.styles) === null || _options$styles === void 0 ? void 0 : _options$styles.default);
++			const providedStyles = options.styles;
++			const defaultStyles = new DefaultStylesFactory().newInstance(providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.default);
+ 			const externalStyles = new ExternalStylesFactory().newInstance(options.externalStyles);
+-			this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, { importedStyles: [...defaultStyles.importedStyles, ...externalStyles.importedStyles] }));
++			this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, {
++				importedStyles: [...defaultStyles.importedStyles, ...externalStyles.importedStyles],
++				paragraphStyles: providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.paragraphStyles,
++				characterStyles: providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.characterStyles
++			}));
+ 		} else if (options.styles) {
+ 			const defaultStyles = new DefaultStylesFactory().newInstance(options.styles.default);
+ 			this.styles = new Styles(_objectSpread2(_objectSpread2({}, defaultStyles), options.styles));
+diff --git a/dist/index.iife.js b/dist/index.iife.js
+index a8646c5..2fab900 100644
+--- a/dist/index.iife.js
++++ b/dist/index.iife.js
+@@ -9193,7 +9193,7 @@ var docx = (function(exports) {
+ 	* </xsd:complexType>
+ 	* ```
+ 	*/
+-	var createIndent = ({ start, end, left, right, hanging, firstLine, firstLineChars }) => new BuilderElement({
++	var createIndent = ({ start, end, left, right, hanging, firstLine, leftChars, rightChars, hangingChars, firstLineChars }) => new BuilderElement({
+ 		name: "w:ind",
+ 		attributes: {
+ 			start: {
+@@ -9220,6 +9220,18 @@ var docx = (function(exports) {
+ 				key: "w:firstLine",
+ 				value: firstLine === void 0 ? void 0 : twipsMeasureValue(firstLine)
+ 			},
++			leftChars: {
++				key: "w:leftChars",
++				value: leftChars === void 0 ? void 0 : decimalNumber(leftChars)
++			},
++			rightChars: {
++				key: "w:rightChars",
++				value: rightChars === void 0 ? void 0 : decimalNumber(rightChars)
++			},
++			hangingChars: {
++				key: "w:hangingChars",
++				value: hangingChars === void 0 ? void 0 : decimalNumber(hangingChars)
++			},
+ 			firstLineChars: {
+ 				key: "w:firstLineChars",
+ 				value: firstLineChars === void 0 ? void 0 : decimalNumber(firstLineChars)
+@@ -16377,7 +16389,7 @@ EXTERNAL: "External" };
+ 	* });
+ 	* ```
+ 	*/
+-	var createSpacing = ({ after, before, line, lineRule, beforeAutoSpacing, afterAutoSpacing }) => new BuilderElement({
++	var createSpacing = ({ after, before, beforeLines, afterLines, line, lineRule, beforeAutoSpacing, afterAutoSpacing }) => new BuilderElement({
+ 		name: "w:spacing",
+ 		attributes: {
+ 			after: {
+@@ -16388,6 +16400,14 @@ EXTERNAL: "External" };
+ 				key: "w:before",
+ 				value: before
+ 			},
++			beforeLines: {
++				key: "w:beforeLines",
++				value: beforeLines
++			},
++			afterLines: {
++				key: "w:afterLines",
++				value: afterLines
++			},
+ 			line: {
+ 				key: "w:line",
+ 				value: line
+@@ -26832,10 +26852,14 @@ MAX: 9026 };
+ 			});
+ 			this.media = new Media();
+ 			if (options.externalStyles !== void 0) {
+-				var _options$styles;
+-				const defaultStyles = new DefaultStylesFactory().newInstance((_options$styles = options.styles) === null || _options$styles === void 0 ? void 0 : _options$styles.default);
++				const providedStyles = options.styles;
++				const defaultStyles = new DefaultStylesFactory().newInstance(providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.default);
+ 				const externalStyles = new ExternalStylesFactory().newInstance(options.externalStyles);
+-				this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, { importedStyles: [...defaultStyles.importedStyles, ...externalStyles.importedStyles] }));
++				this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, {
++					importedStyles: [...defaultStyles.importedStyles, ...externalStyles.importedStyles],
++					paragraphStyles: providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.paragraphStyles,
++					characterStyles: providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.characterStyles
++				}));
+ 			} else if (options.styles) {
+ 				const defaultStyles = new DefaultStylesFactory().newInstance(options.styles.default);
+ 				this.styles = new Styles(_objectSpread2(_objectSpread2({}, defaultStyles), options.styles));
+diff --git a/dist/index.mjs b/dist/index.mjs
+index c023db4..56a2f69 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -9195,7 +9195,7 @@ var ThematicBreak = class extends XmlComponent {
+ * </xsd:complexType>
+ * ```
+ */
+-var createIndent = ({ start, end, left, right, hanging, firstLine, firstLineChars }) => new BuilderElement({
++var createIndent = ({ start, end, left, right, hanging, firstLine, leftChars, rightChars, hangingChars, firstLineChars }) => new BuilderElement({
+ 	name: "w:ind",
+ 	attributes: {
+ 		start: {
+@@ -9222,6 +9222,18 @@ var createIndent = ({ start, end, left, right, hanging, firstLine, firstLineChar
+ 			key: "w:firstLine",
+ 			value: firstLine === void 0 ? void 0 : twipsMeasureValue(firstLine)
+ 		},
++		leftChars: {
++			key: "w:leftChars",
++			value: leftChars === void 0 ? void 0 : decimalNumber(leftChars)
++		},
++		rightChars: {
++			key: "w:rightChars",
++			value: rightChars === void 0 ? void 0 : decimalNumber(rightChars)
++		},
++		hangingChars: {
++			key: "w:hangingChars",
++			value: hangingChars === void 0 ? void 0 : decimalNumber(hangingChars)
++		},
+ 		firstLineChars: {
+ 			key: "w:firstLineChars",
+ 			value: firstLineChars === void 0 ? void 0 : decimalNumber(firstLineChars)
+@@ -16379,7 +16391,7 @@ var LineRuleType = {
+ * });
+ * ```
+ */
+-var createSpacing = ({ after, before, line, lineRule, beforeAutoSpacing, afterAutoSpacing }) => new BuilderElement({
++var createSpacing = ({ after, before, beforeLines, afterLines, line, lineRule, beforeAutoSpacing, afterAutoSpacing }) => new BuilderElement({
+ 	name: "w:spacing",
+ 	attributes: {
+ 		after: {
+@@ -16390,6 +16402,14 @@ var createSpacing = ({ after, before, line, lineRule, beforeAutoSpacing, afterAu
+ 			key: "w:before",
+ 			value: before
+ 		},
++		beforeLines: {
++			key: "w:beforeLines",
++			value: beforeLines
++		},
++		afterLines: {
++			key: "w:afterLines",
++			value: afterLines
++		},
+ 		line: {
+ 			key: "w:line",
+ 			value: line
+@@ -26834,10 +26854,14 @@ var File = class {
+ 		});
+ 		this.media = new Media();
+ 		if (options.externalStyles !== void 0) {
+-			var _options$styles;
+-			const defaultStyles = new DefaultStylesFactory().newInstance((_options$styles = options.styles) === null || _options$styles === void 0 ? void 0 : _options$styles.default);
++			const providedStyles = options.styles;
++			const defaultStyles = new DefaultStylesFactory().newInstance(providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.default);
+ 			const externalStyles = new ExternalStylesFactory().newInstance(options.externalStyles);
+-			this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, { importedStyles: [...defaultStyles.importedStyles, ...externalStyles.importedStyles] }));
++			this.styles = new Styles(_objectSpread2(_objectSpread2({}, externalStyles), {}, {
++				importedStyles: [...defaultStyles.importedStyles, ...externalStyles.importedStyles],
++				paragraphStyles: providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.paragraphStyles,
++				characterStyles: providedStyles === null || providedStyles === void 0 ? void 0 : providedStyles.characterStyles
++			}));
+ 		} else if (options.styles) {
+ 			const defaultStyles = new DefaultStylesFactory().newInstance(options.styles.default);
+ 			this.styles = new Styles(_objectSpread2(_objectSpread2({}, defaultStyles), options.styles));

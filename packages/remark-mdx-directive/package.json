@@ -1,0 +1,49 @@
+{
+  "name": "@markscript/remark-mdx-directive",
+  "version": "0.1.0",
+  "description": "MarkScript Remark plugin for directives with expression-valued attributes",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types",
+    "license",
+    "readme.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/remark-mdx-directive"
+  },
+  "markscriptFork": {
+    "package": "remark-directive",
+    "version": "4.0.0",
+    "repository": "https://github.com/remarkjs/remark-directive"
+  },
+  "dependencies": {
+    "@markscript/mdast-util-mdx-directive": "workspace:*",
+    "@markscript/micromark-extension-mdx-directive": "workspace:*",
+    "@types/mdast": "^4.0.4",
+    "unified": "^11.0.0"
+  },
+  "devDependencies": {
+    "mdast-util-from-markdown": "^2.0.0",
+    "mdast-util-to-markdown": "^2.1.2",
+    "remark-parse": "^11.0.0",
+    "acorn": "^8.18.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false -p tsconfig.build.json"
+  }
+}

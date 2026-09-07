@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "skipLibCheck": true,
+    "types": ["bun"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "@markscript/runtime"
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.ms"]
+}

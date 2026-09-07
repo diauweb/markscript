@@ -1,0 +1,70 @@
+{
+  "name": "@markscript/compiler",
+  "version": "0.1.0",
+  "description": "Compiler, checker, formatter, and bundler for MarkScript documents",
+  "keywords": [
+    "markscript",
+    "markdown",
+    "mdast",
+    "mdx",
+    "typescript",
+    "document-generation"
+  ],
+  "license": "MIT",
+  "author": "Xiaodai Dai <diauweb@live.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/diauweb/markscript.git",
+    "directory": "packages/compiler"
+  },
+  "homepage": "https://github.com/diauweb/markscript#readme",
+  "bugs": {
+    "url": "https://github.com/diauweb/markscript/issues"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./types/index.d.ts",
+      "bun": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./prettier": {
+      "types": "./types/prettier.d.ts",
+      "default": "./dist/prettier.js"
+    }
+  },
+  "files": [
+    "dist",
+    "types"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "@sveltejs/acorn-typescript": "^1.0.12",
+    "@types/bun": "^1.3.14",
+    "@types/mdast": "^4.0.4",
+    "@types/unist": "^3.0.3",
+    "acorn": "^8.18.0",
+    "prettier": "3.9.6",
+    "remark-gfm": "^4.0.1",
+    "@markscript/remark-mdx-directive": "workspace:*",
+    "remark-mdx": "^3.1.1",
+    "remark-parse": "^11.0.0",
+    "source-map": "^0.7.6",
+    "typescript": "^6.0.2",
+    "unified": "^11.0.5",
+    "vfile": "^6.0.3"
+  },
+  "peerDependencies": {
+    "@markscript/runtime": "^0.1.0"
+  },
+  "devDependencies": {
+    "mdast-util-from-markdown": "^2.0.3",
+    "mdast-util-to-markdown": "^2.1.2"
+  }
+}

@@ -1,0 +1,11 @@
+**
+!package.json
+!LICENSE
+!README.md
+!language-configuration.json
+!syntaxes/
+!syntaxes/**
+!dist/
+!dist/**
+!manuals/
+!manuals/**
