@@ -18,7 +18,7 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     permissions:
       contents: read
       id-token: write
@@ -51,6 +51,9 @@ jobs:
           for archive in "$RUNNER_TEMP"/packages/*.tgz; do
             npm publish "$archive" --registry=https://registry.npmjs.org --access=public --provenance --ignore-scripts
           done
+      - name: Wait for npm availability
+        if: inputs.publish
+        run: bun scripts/wait-for-registry.ts
       - name: Check registry installation
         if: inputs.publish
         run: |

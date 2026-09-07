@@ -203,5 +203,6 @@ tarball with `npm publish ARCHIVE.tgz --access public`. For subsequent releases,
 configure an npm trusted publisher on each package with GitHub owner
 `diauweb`, repository `markscript`, and workflow `publish-packages.yml`, then
 run **Release packages** with `publish` enabled. The workflow publishes with
-provenance and verifies a fresh registry installation. Increment package
+provenance, waits up to 20 minutes for npm availability after publish-time
+scanning, and verifies a fresh registry installation. Increment package
 versions and their internal version constraints before each new release.
