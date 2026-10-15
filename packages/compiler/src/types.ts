@@ -17,6 +17,9 @@ export interface Diagnostic {
 }
 
 export interface CompilerOptions {
+  /** Runtime import identities supplied by an execution loader. */
+  runtimeImports?: ReadonlyMap<string, string>
+
   filename?: string
   compilerOptions?: ts.CompilerOptions
   tsconfig?: string | false
@@ -57,6 +60,8 @@ export interface TypeScriptProjection {
 }
 
 export interface RunOptions extends CompilerOptions {
+  /** Per-invocation document input; validated by the document when needed. */
+  input?: unknown
   check?: boolean
 }
 

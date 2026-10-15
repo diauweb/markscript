@@ -7,6 +7,49 @@ import {
 } from '../src/index.ts'
 
 describe('MarkScript Volar language plugin', () => {
+  test('maps leading TSDoc into TypeScript and masks it from Markdown', () => {
+    const plugin = createMarkscriptLanguagePlugin(ts, {
+      fileName: (id: string) => id,
+    })
+    const language = createLanguage([plugin], new Map(), () => undefined)
+    const source =
+      '/**\n * Format a title.\n * @param title - The title.\n */\nexport function formatTitle(title: string) { return title }\n\n# {formatTitle("Report")}\n'
+    const script = language.scripts.set(
+      '/workspace/document.ms',
+      ts.ScriptSnapshot.fromString(source),
+      'markscript',
+    )
+    if (!script) throw new Error('Expected MarkScript source registration')
+    const root = script.generated?.root as MarkscriptVirtualCode
+    expect(root.diagnostics).toEqual([])
+    const typescript = root.embeddedCodes.find(
+      (code) => code.id === 'typescript',
+    )
+    const markdown = root.embeddedCodes.find((code) => code.id === 'markdown')
+    if (!typescript || !markdown)
+      throw new Error('Expected both embedded languages')
+    const generated = typescript.snapshot.getText(
+      0,
+      typescript.snapshot.getLength(),
+    )
+    const map = language.maps.get(typescript, script)
+    for (const text of [
+      'Format a title.',
+      '@param title',
+      'export function formatTitle',
+    ]) {
+      expect([...map.toSourceLocation(generated.indexOf(text))][0]?.[0]).toBe(
+        source.indexOf(text),
+      )
+    }
+    const masked = markdown.snapshot.getText(0, markdown.snapshot.getLength())
+    const moduleEnd = source.indexOf('\n\n#')
+    expect(masked.slice(0, moduleEnd)).toBe(
+      source.slice(0, moduleEnd).replace(/[^\r\n]/g, ' '),
+    )
+    expect(masked.slice(moduleEnd)).toContain('# ')
+  })
+
   test('projects .ms source into mapped TSX virtual code', () => {
     const plugin = createMarkscriptLanguagePlugin(ts, {
       fileName: (id: string) => id,
@@ -40,6 +83,30 @@ describe('MarkScript Volar language plugin', () => {
         ? [...map.toSourceLocation(generatedOffset)][0]?.[0]
         : undefined,
     ).toBe(sourceOffset)
+  })
+
+  test('maps document input expressions to the typed render parameter', () => {
+    const plugin = createMarkscriptLanguagePlugin(ts, {
+      fileName: (id: string) => id,
+    })
+    const language = createLanguage([plugin], new Map(), () => undefined)
+    const source = 'export interface Input {title: string}\n\n# {input.title}\n'
+    const script = language.scripts.set(
+      '/workspace/input.ms',
+      ts.ScriptSnapshot.fromString(source),
+      'markscript',
+    )
+    if (!script) throw new Error('Expected source registration')
+    const code = script.generated?.root.embeddedCodes?.find(
+      (code) => code.id === 'typescript',
+    )
+    if (!code) throw new Error('Expected TypeScript projection')
+    const generated = code.snapshot.getText(0, code.snapshot.getLength())
+    const map = language.maps.get(code, script)
+    expect(generated).toContain('(input: Input)')
+    expect(
+      [...map.toSourceLocation(generated.indexOf('input.title'))][0]?.[0],
+    ).toBe(source.indexOf('input.title'))
   })
 
   test('keeps parser diagnostics on the root virtual code', () => {

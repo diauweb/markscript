@@ -28,8 +28,8 @@
       "patterns": [
         {
           "name": "meta.embedded.esm.markscript",
-          "begin": "^(?=\\s*(?:import|export)\\b)",
-          "end": "^(?=(?!\\s)(?!(?:import|export|declare)\\b)(?![})\\]])\\S)",
+          "begin": "^(?=\\s*(?:(?:import|export)\\b|/\\*\\*))",
+          "end": "^(?=(?!\\s)(?!(?:import|export|declare)\\b)(?!/\\*\\*)(?![})\\]])\\S)",
           "patterns": [{ "include": "source.tsx" }]
         }
       ]

@@ -109,7 +109,7 @@ export function mapGeneratedOffset(
   return undefined
 }
 
-function offsetToPoint(source: string, offset: number) {
+export function offsetToPoint(source: string, offset: number) {
   let line = 1
   let lineStart = 0
   for (let index = 0; index < offset; index += 1) {

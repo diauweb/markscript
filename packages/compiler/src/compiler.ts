@@ -1,9 +1,14 @@
 import {readFile} from 'node:fs/promises'
 import path from 'node:path'
 import ts from 'typescript'
-import {checkVirtualModule} from './checker.ts'
-import {hasErrors} from './diagnostics.ts'
+import {
+  analyzeVirtualModule,
+  checkVirtualModule,
+  type TypeScriptAnalysis,
+} from './checker.ts'
+import {hasErrors, MarkScriptCompilationError} from './diagnostics.ts'
 import {generateModule} from './generate.ts'
+import {moduleImportTransformer} from './imports.ts'
 import {parseMarkscript} from './parser.ts'
 import {composeSourceMap, mapTypeScriptDiagnostic} from './source-mapping.ts'
 import type {
@@ -64,6 +69,13 @@ export async function compile(
   const transpiled = ts.transpileModule(frontend.generated.code, {
     fileName: frontend.generated.filename,
     reportDiagnostics: true,
+    ...(options.runtimeImports
+      ? {
+          transformers: {
+            before: [moduleImportTransformer(options.runtimeImports)],
+          },
+        }
+      : {}),
     compilerOptions: {
       ...options.compilerOptions,
       target: options.compilerOptions?.target ?? ts.ScriptTarget.ES2022,
@@ -116,6 +128,31 @@ export async function checkFile(
 ): Promise<Diagnostic[]> {
   const absolute = path.resolve(filename)
   return check(await readFile(absolute), {...options, filename: absolute})
+}
+
+/** Build a static, project-aware TypeScript program for a MarkScript graph. */
+export async function analyzeFile(
+  filename: string,
+  options: Omit<CompilerOptions, 'filename'> = {},
+): Promise<TypeScriptAnalysis> {
+  const absolute = path.resolve(filename)
+  const source =
+    options.sourceOverrides?.get(absolute) ?? (await readFile(absolute, 'utf8'))
+  const projection = createTypeScriptProjection(source, absolute)
+  if (!projection.generated || hasErrors(projection.diagnostics)) {
+    throw new MarkScriptCompilationError(projection.diagnostics)
+  }
+  const {code, filename: virtualFilename, spans} = projection.generated
+  const analysis = analyzeVirtualModule(
+    code,
+    virtualFilename,
+    absolute,
+    source,
+    spans,
+    options,
+  )
+  analysis.diagnostics.unshift(...projection.diagnostics)
+  return analysis
 }
 
 export async function compileFile(

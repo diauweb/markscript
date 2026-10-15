@@ -12,19 +12,20 @@ const invalidTypeScript = 'export const bad: number = "wrong"\n'
 const diagnosticFiles = ['broken.ts', 'broken-component.tsx']
 const directiveLabel =
   'This long directive label must remain intact when project prose wrapping is enabled and its text exceeds the configured print width'
-const source = `import {onReady, onTransform} from '@markscript/markscript'
-import cover from './cover.jpeg'
-import {Card} from './component.tsx'
-
-export const report={title:'Quarterly'}
-export const coverName = cover.toUpperCase()
-/**
+const source = `/**
  * Format a report title.
  * @param value Report to format.
  */
 export function titleOf(value: typeof report) {
   return value.title
 }
+
+import {onReady, onTransform} from '@markscript/markscript'
+import cover from './cover.jpeg'
+import {Card} from './component.tsx'
+
+export const report={title:'Quarterly'}
+export const coverName = cover.toUpperCase()
 
 # Intro
 
@@ -247,6 +248,16 @@ export function Card({title}: {title: string}) {
         hover.contents.value.includes('```typescript') &&
         hover.contents.value.includes('Render a typed report heading'),
       'Rich component JSDoc hover is missing',
+    )
+
+    const documentedHover = await client.request<Hover>(
+      'textDocument/hover',
+      textPosition(positionInside('titleOf(report)', 2)),
+    )
+    assert(
+      documentedHover.contents.kind === 'markdown' &&
+        documentedHover.contents.value.includes('Format a report title'),
+      'Leading TSDoc is missing from exported function hover',
     )
 
     const definitions = await client.request<Location[]>(

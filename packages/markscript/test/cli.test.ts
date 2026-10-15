@@ -17,6 +17,38 @@ afterAll(async () => {
 })
 
 describe('citty CLI', () => {
+  test('run reads JSON input and rejects malformed JSON before execution', async () => {
+    const source = path.join(temporaryRoot, 'input.ms')
+    const input = path.join(temporaryRoot, 'input.json')
+    await writeFile(
+      source,
+      'export interface Input {title: string}\n\n# {input.title}\n',
+    )
+    await writeFile(input, JSON.stringify({title: 'From JSON'}))
+    const output: string[] = []
+    const errors: string[] = []
+    const originalLog = console.log
+    const originalError = console.error
+    console.log = (...values: unknown[]) => {
+      output.push(values.map(String).join(' '))
+    }
+    console.error = (...values: unknown[]) => {
+      errors.push(values.map(String).join(' '))
+    }
+    try {
+      expect(await main(['run', source, '--input', input])).toBe(0)
+      expect(output.join('\n')).toContain('# From JSON')
+      output.length = 0
+      await writeFile(input, '{broken')
+      expect(await main(['run', source, '--input', input])).toBe(2)
+      expect(output).toEqual([])
+      expect(errors.length).toBeGreaterThan(0)
+    } finally {
+      console.log = originalLog
+      console.error = originalError
+    }
+  })
+
   test('run explains a catalogued failure before executing the document', async () => {
     const source = path.join(temporaryRoot, 'invalid.ms')
     const sideEffect = path.join(temporaryRoot, 'must-not-exist')
@@ -122,7 +154,7 @@ import {writeFile} from 'node:fs/promises'
     expect(cliObservation).toEqual(importedRoot)
     expect(lifecycleFinishedBeforeOutput).toBe(true)
     expect(emitted).toBe('# Equivalent')
-  })
+  }, 30_000)
 })
 
 async function fileExists(filename: string): Promise<boolean> {

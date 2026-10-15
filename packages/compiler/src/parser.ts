@@ -8,31 +8,26 @@ import {unified} from 'unified'
 import {VFile} from 'vfile'
 import type {MarkscriptNode} from './ast.ts'
 import {markscriptDiagnostic} from './diagnostics.ts'
+import {remarkDocumentedEsm} from './documented-esm.ts'
 import type {Diagnostic} from './types.ts'
 
 const TypeScriptParser = Parser.extend(tsPlugin({jsx: true}))
+const mdxOptions = {
+  acorn: TypeScriptParser,
+  acornOptions: {
+    ecmaVersion: 'latest',
+    locations: true,
+    sourceType: 'module',
+  },
+  addResult: false,
+} as const
 
 const processor = unified()
   .use(remarkParse)
   .use(remarkGfm)
-  .use(remarkDirective, {
-    acorn: TypeScriptParser,
-    acornOptions: {
-      ecmaVersion: 'latest',
-      locations: true,
-      sourceType: 'module',
-    },
-    addResult: false,
-  })
-  .use(remarkMdx, {
-    acorn: TypeScriptParser,
-    acornOptions: {
-      ecmaVersion: 'latest',
-      locations: true,
-      sourceType: 'module',
-    },
-    addResult: false,
-  })
+  .use(remarkDirective, mdxOptions)
+  .use(remarkMdx, mdxOptions)
+  .use(remarkDocumentedEsm, mdxOptions)
 
 export interface ParseResult {
   tree?: MarkscriptNode

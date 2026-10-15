@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import {mkdir} from 'node:fs/promises'
+import {mkdir, readFile} from 'node:fs/promises'
 import path from 'node:path'
 import {
   bundleFile,
@@ -154,6 +154,11 @@ export const executeCommand = defineCommand({
   args: {
     file: fileArgument,
     project: projectArgument,
+    input: {
+      type: 'string',
+      description: 'JSON file containing document input',
+      valueHint: 'input.json',
+    },
     format: {
       type: 'string',
       alias: 'f',
@@ -167,7 +172,7 @@ export const executeCommand = defineCommand({
     validateParsedArguments(
       rawArgs,
       args._,
-      ['project', 'format', 'transpile-only'],
+      ['project', 'format', 'transpile-only', 'input'],
       ['p', 'f'],
     )
   },
@@ -177,6 +182,8 @@ export const executeCommand = defineCommand({
       check: !args['transpile-only'],
     }
     if (args.project) options.tsconfig = args.project
+    if (args.input)
+      options.input = JSON.parse(await readFile(args.input, 'utf8'))
     const format = parseDocumentOutputFormat(args.format)
     const root = await runFile(args.file, options)
     console.log(formatDocument(root, format))

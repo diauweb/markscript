@@ -24,6 +24,7 @@ interface GeneratorState {
   source: string
   filename: string
   diagnostics: Diagnostic[]
+  hasInput: boolean
   definitions: Map<string, DefinitionRecord>
   jsx: string
   jsxs: string
@@ -124,6 +125,7 @@ export function generateModule(
     source,
     filename,
     diagnostics: [],
+    hasInput: false,
     definitions: collectDefinitions(tree),
     jsx: `__markscript_${suffix}_jsx`,
     jsxs: `__markscript_${suffix}_jsxs`,
@@ -135,8 +137,13 @@ export function generateModule(
   const render = `__markscript_${suffix}_render`
   const entry = `__markscript_${suffix}_entry`
   const modules = collectModuleBlocks(tree)
-
   for (const moduleNode of modules) validateModuleBlock(moduleNode, state)
+  const exports = documentExports(
+    modules.map((node) => node.value ?? '').join('\n'),
+    suffix,
+  )
+  const define = `__markscript_${suffix}_define`
+  const {hasInput} = state
   validateTree(tree, 'root', state)
 
   const documentChildren = (tree.children ?? [])
@@ -150,16 +157,17 @@ export function generateModule(
 
   const virtualCode = [
     '/** @jsxImportSource @markscript/runtime */',
-    `import {directiveAnnotation as ${state.directiveAnnotation}, directiveGroup as ${state.directiveGroup}, executeDocument as ${state.execute}} from '@markscript/runtime'`,
+    `import {defineDocument as ${define}, directiveAnnotation as ${state.directiveAnnotation}, directiveGroup as ${state.directiveGroup}, executeDocument as ${state.execute}} from '@markscript/runtime'`,
     `import {Fragment as ${state.fragment}, jsx as ${state.jsx}, jsxs as ${state.jsxs}} from '@markscript/runtime/jsx-runtime'`,
     ...modules.map((node) => node.value ?? ''),
-    `async function ${render}() {`,
+    ...exports.imports,
+    `async function ${render}(${hasInput ? 'input: Input' : ''}) {`,
     `  return ${body}`,
     `}`,
-    `async function ${entry}() {`,
-    `  return ${state.execute}(${render})`,
+    `async function ${entry}(${hasInput ? 'input: Input' : ''}) {`,
+    `  return ${state.execute}(${hasInput ? `() => ${render}(input)` : render})`,
     `}`,
-    `export default ${entry}`,
+    `export default ${define}(${entry}, {origin: ${JSON.stringify(filename)}, source: ${JSON.stringify(source)}, bindings: () => ({${exports.values.join(',')}})})`,
     '',
   ].join('\n\n')
 
@@ -526,6 +534,17 @@ function validateModuleBlock(node: MarkscriptNode, state: GeneratorState) {
   )
 
   for (const statement of parsed.statements) {
+    if (
+      (ts.isInterfaceDeclaration(statement) ||
+        ts.isTypeAliasDeclaration(statement)) &&
+      statement.name.text === 'Input' &&
+      statement.modifiers?.some(
+        (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+      )
+    ) {
+      state.hasInput = true
+    }
+
     const isDefault =
       ts.isExportAssignment(statement) ||
       (ts.canHaveModifiers(statement) &&
@@ -1184,4 +1203,67 @@ function uniqueInternalSuffix(initial: string, source: string): string {
   let suffix = initial
   while (source.includes(`__markscript_${suffix}_`)) suffix += '_x'
   return suffix
+}
+
+function documentExports(
+  source: string,
+  suffix: string,
+): {imports: string[]; values: string[]} {
+  const file = ts.createSourceFile(
+    'exports.ts',
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX,
+  )
+  const imports: string[] = []
+  const values: string[] = []
+  const names = (name: ts.BindingName): void => {
+    if (ts.isIdentifier(name))
+      values.push(`${JSON.stringify(name.text)}: ${name.text}`)
+    else
+      for (const element of name.elements)
+        if (ts.isBindingElement(element)) names(element.name)
+  }
+  for (const statement of file.statements) {
+    if (ts.isExportDeclaration(statement) && !statement.isTypeOnly) {
+      const clause = statement.exportClause
+      let alias = ''
+      if (statement.moduleSpecifier) {
+        alias = `__markscript_${suffix}_exports_${imports.length}`
+        imports.push(
+          `import * as ${alias} from ${statement.moduleSpecifier.getText(file)}`,
+        )
+      }
+      if (!clause && alias) values.push(`...${alias}`)
+      else if (clause && ts.isNamespaceExport(clause))
+        values.push(`${JSON.stringify(clause.name.text)}: ${alias}`)
+      else if (clause && ts.isNamedExports(clause)) {
+        for (const element of clause.elements)
+          if (!element.isTypeOnly) {
+            const local = (element.propertyName ?? element.name).text
+            values.push(
+              `${JSON.stringify(element.name.text)}: ${alias ? `${alias}[${JSON.stringify(local)}]` : local}`,
+            )
+          }
+      }
+    } else if (
+      ts.canHaveModifiers(statement) &&
+      ts
+        .getModifiers(statement)
+        ?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword)
+    ) {
+      if (ts.isVariableStatement(statement))
+        for (const decl of statement.declarationList.declarations)
+          names(decl.name)
+      else if (
+        (ts.isFunctionDeclaration(statement) ||
+          ts.isClassDeclaration(statement) ||
+          ts.isEnumDeclaration(statement)) &&
+        statement.name
+      )
+        names(statement.name)
+    }
+  }
+  return {imports, values}
 }

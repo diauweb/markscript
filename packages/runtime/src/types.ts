@@ -113,7 +113,9 @@ export type TransformCallback = (context: TransformContext) => unknown
 
 export type ReadyCallback = (context: ReadyContext) => unknown
 
-export type MarkScriptEntry = () => Promise<Root>
+export type MarkScriptEntry<Input = undefined> = [Input] extends [undefined]
+  ? () => Promise<Root>
+  : (input: Input) => Promise<Root>
 
 export type DocumentRenderer = () => MarkValue | PromiseLike<MarkValue>
 

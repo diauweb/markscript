@@ -52,6 +52,48 @@ beforeAll(async () => {
 })
 
 describe('MarkScript TextMate grammar', () => {
+  test('opens TSX at leading TSDoc and retains documentation between exports', () => {
+    const lines = tokenize([
+      '/**',
+      ' * Render a greeting with {@link String}.',
+      '',
+      ' * @param name - The recipient.',
+      ' */',
+      'export function greet(name: string) {',
+      '  return name',
+      '}',
+      '',
+      '/** Another greeting. */',
+      'export const greeting = "Hello"',
+      '',
+      '# Markdown after the module.',
+    ])
+
+    for (const index of [0, 1, 3, 4, 9]) {
+      expect(
+        hasScope(lines[index], 'comment.block.documentation.tsx.stub'),
+      ).toBe(true)
+      expect(hasScope(lines[index], 'meta.embedded.esm.markscript')).toBe(true)
+      expect(
+        hasScope(lines[index], 'meta.embedded.expression.markscript'),
+      ).toBe(false)
+    }
+    for (const index of [5, 6, 7, 10]) {
+      expect(hasScope(lines[index], 'meta.embedded.esm.markscript')).toBe(true)
+    }
+    expect(hasScope(lines[12], 'meta.embedded.esm.markscript')).toBe(false)
+    expect(hasScope(lines[12], 'text.markdown.stub')).toBe(true)
+
+    const fenced = tokenize([
+      '```ms',
+      '/** Documentation. */',
+      'export const value = 1',
+      '```',
+    ])
+    expect(hasScope(fenced[1], 'markup.raw.fenced.markdown.stub')).toBe(true)
+    expect(hasScope(fenced[1], 'meta.embedded.esm.markscript')).toBe(false)
+  })
+
   test('keeps multiline ESM in TSX and returns to Markdown prose', () => {
     const lines = tokenize([
       'export function Card(props: {title: string}) {',
@@ -206,6 +248,11 @@ const tsxGrammar = parseRawGrammar(
     scopeName: 'source.tsx',
     repository: {},
     patterns: [
+      {
+        begin: '/\\*\\*',
+        end: '\\*/',
+        name: 'comment.block.documentation.tsx.stub',
+      },
       {
         match: '"(?:\\\\.|[^"\\\\])*"',
         name: 'string.quoted.double.tsx.stub',

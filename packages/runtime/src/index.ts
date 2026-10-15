@@ -6,6 +6,12 @@ export {
   group,
 } from './directives.ts'
 export {
+  DOCUMENT,
+  type DocumentDefinition,
+  defineDocument,
+  documentDefinition,
+} from './document.ts'
+export {
   MarkScriptRuntimeError,
   type RuntimeErrorCode,
   type RuntimeErrorOptions,

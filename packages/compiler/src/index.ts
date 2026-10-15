@@ -6,7 +6,9 @@ export type {
   MdxSpreadAttribute,
 } from './ast.ts'
 export {bundleFile} from './bundle.ts'
+export type {TypeScriptAnalysis} from './checker.ts'
 export {
+  analyzeFile,
   check,
   checkFile,
   compile,
@@ -28,7 +30,14 @@ export {
   imageAssetVirtualFilename,
   resolveImageAssetImport,
 } from './image-assets.ts'
-export {installBunLoader, runFile, runFile as run} from './loader.ts'
+export {moduleImportTransformer} from './imports.ts'
+export {
+  installBunLoader,
+  registeredModuleSources,
+  registerModuleSource,
+  runFile,
+  runFile as run,
+} from './loader.ts'
 export type {ParseResult} from './parser.ts'
 export {parseMarkscript} from './parser.ts'
 export type {

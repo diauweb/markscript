@@ -9,7 +9,11 @@ import {
   resolveImageAssetImport,
 } from './image-assets.ts'
 import {parseMarkscript} from './parser.ts'
-import {mapTypeScriptDiagnostic} from './source-mapping.ts'
+import {
+  mapGeneratedOffset,
+  mapTypeScriptDiagnostic,
+  offsetToPoint,
+} from './source-mapping.ts'
 import type {CompilerOptions, Diagnostic, GeneratedSourceSpan} from './types.ts'
 
 const standaloneOptions: ts.CompilerOptions = {
@@ -71,6 +75,31 @@ export function checkVirtualModule(
   spans: readonly GeneratedSourceSpan[],
   options: CompilerOptions = {},
 ): Diagnostic[] {
+  return analyzeVirtualModule(
+    virtualCode,
+    virtualFilename,
+    originalFilename,
+    originalSource,
+    spans,
+    options,
+  ).diagnostics
+}
+
+export interface TypeScriptAnalysis {
+  program: ts.Program
+  entry: ts.SourceFile
+  diagnostics: Diagnostic[]
+  location(node: ts.Node): {filename: string; line: number; column: number}
+}
+
+export function analyzeVirtualModule(
+  virtualCode: string,
+  virtualFilename: string,
+  originalFilename: string,
+  originalSource: string,
+  spans: readonly GeneratedSourceSpan[],
+  options: CompilerOptions = {},
+): TypeScriptAnalysis {
   const originalPath = absolutePath(originalFilename)
   const virtualPath = absolutePath(virtualFilename)
   const configuration = readProjectConfiguration(originalPath, options.tsconfig)
@@ -85,6 +114,14 @@ export function checkVirtualModule(
   const compilerOptions: ts.CompilerOptions = {
     ...(configuration.configPath ? configuration.options : standaloneOptions),
     ...options.compilerOptions,
+    ...(options.compilerOptions?.paths
+      ? {
+          paths: {
+            ...configuration.options.paths,
+            ...options.compilerOptions.paths,
+          },
+        }
+      : {}),
 
     // These options describe MarkScript's language/runtime boundary independent
     // of a host project's JSX emitter. `noEmit` keeps checking artifact-free.
@@ -99,6 +136,17 @@ export function checkVirtualModule(
 
     // Static checking uses a plugin-free program for consistent future adapters.
     plugins: [],
+  }
+
+  if (!compilerOptions.typeRoots && compilerOptions.types?.includes('bun')) {
+    compilerOptions.typeRoots = [
+      ...(ts.getEffectiveTypeRoots(compilerOptions, {
+        getCurrentDirectory: () => dirname(originalPath),
+      }) ?? []),
+      dirname(
+        dirname(fileURLToPath(import.meta.resolve('@types/bun/package.json'))),
+      ),
+    ]
   }
 
   const rootModule: VirtualModule = {
@@ -165,7 +213,31 @@ export function checkVirtualModule(
     }),
   ]
 
-  return deduplicateDiagnostics(diagnostics)
+  const entry = program.getSourceFile(virtualPath)
+  if (!entry) throw new Error(`Missing TypeScript entry: ${virtualPath}`)
+  return {
+    program,
+    entry,
+    diagnostics: deduplicateDiagnostics(diagnostics),
+    location(node) {
+      const file = node.getSourceFile()
+      const module = virtualHost.modules.get(canonicalPath(file.fileName))
+      if (module) {
+        const offset = mapGeneratedOffset(module.spans, node.getStart())
+        if (offset !== undefined)
+          return {
+            filename: module.originalPath,
+            ...offsetToPoint(module.source, offset),
+          }
+      }
+      const position = file.getLineAndCharacterOfPosition(node.getStart())
+      return {
+        filename: file.fileName,
+        line: position.line + 1,
+        column: position.character + 1,
+      }
+    },
+  }
 }
 
 function readProjectConfiguration(
@@ -526,6 +598,9 @@ function resolveMarkscriptImport(
       return original !== undefined || host.fileExists(filename)
     },
     readFile: host.readFile.bind(host),
+    ...(host.getCurrentDirectory
+      ? {getCurrentDirectory: host.getCurrentDirectory.bind(host)}
+      : {}),
     ...(host.directoryExists
       ? {directoryExists: host.directoryExists.bind(host)}
       : {}),

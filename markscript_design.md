@@ -985,6 +985,52 @@ export default runDocument satisfies MarkScriptEntry
 The compiler gives the default export as the document entry point.
 Source-level interoperability uses standard named value, function, class, and type exports.
 
+## Document input
+
+A directly exported `interface Input` or `type Input` declares the document parameter type for each invocation.
+The compiler binds `input: Input` in the document body.
+The default entry has the type `(input: Input) => Promise<mdast.Root>`.
+Documents without this declaration expose `() => Promise<mdast.Root>`.
+
+```mdx
+export interface Input {
+  title: string
+  year: number
+}
+
+export function formatTitle(data: Input) {
+  return `${data.title} (${data.year})`
+}
+
+# {formatTitle(input)}
+```
+
+```ts
+import report, {formatTitle} from './report.ms'
+
+const data = {title: 'Annual report', year: 2026}
+const root = await report(data)
+formatTitle(data)
+```
+
+The binding is local to each invocation. Document expressions and lifetime callbacks capture that invocation's input, including concurrent and nested calls.
+Imports and exported declarations keep module scope.
+Exported helpers receive input through explicit parameters or capture it in factory closures.
+
+The input declaration must have a concrete, non-generic type.
+An exported alias can refer to shared types, for example `export type Input = ReportInput`.
+The input object passes by reference with standard JavaScript semantics.
+
+Type checks and editor projections expose the parameter type to modules with imports.
+`MarkScriptEntry<Input>` describes an entry with a parameter. `MarkScriptEntry` describes an entry without parameters.
+Runtime code contains no TypeScript type declarations. Each document does its own necessary runtime input validation.
+
+`runFile(filename, {input: data})` passes the given value to the entry.
+`markscript run report.ms --input report-input.json` parses a JSON file and passes its value.
+This path-based API accepts unknown input. It does not validate values against erased TypeScript types.
+JSON read or parse failures stop CLI execution before document import.
+`check` and `compile` process source code statically without concrete input values.
+
 ## 15.1 JavaScript/TypeScript interoperability
 
 A compiled `.ms` module uses standard ESM interoperability. Source-level named exports stay named exports.
@@ -1362,7 +1408,7 @@ Editor hosts use that service for the validation queue and diagnostic publicatio
 
 The Volar language server controls the full editor TypeScript project for MarkScript, JavaScript, and TypeScript documents.
 It gives static `.ms` projections and keeps source-level named export types.
-The default export is `() => Promise<mdast.Root>`.
+The default export is `() => Promise<mdast.Root>` or `(input: Input) => Promise<mdast.Root>` for documents with input.
 Definitions, references, highlights, and rename locations map to authored `.ms` source ranges.
 The VS Code extension uses this integration directly, without a separate TypeScript server plugin.
 
