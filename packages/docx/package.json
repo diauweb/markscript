@@ -42,14 +42,20 @@
     "registry": "https://registry.npmjs.org/"
   },
   "dependencies": {
+    "@markscript/mdast-util-mdx-directive": "workspace:*",
     "@resvg/resvg-js": "2.6.2",
     "@types/mdast": "^4.0.4",
     "docx": "9.7.1",
     "echarts": "6.1.0",
     "fast-xml-parser": "5.11.0",
-    "@markscript/mdast-util-mdx-directive": "workspace:*",
+    "image-size": "^2.0.4",
+    "mdast-util-to-string": "^4.0.0",
+    "micromark-util-normalize-identifier": "^2.0.1",
     "satori": "0.29.0",
-    "shiki": "4.4.3"
+    "shiki": "4.4.3",
+    "unist-util-position": "^5.0.0",
+    "unist-util-visit": "^5.1.0",
+    "unist-util-visit-parents": "^6.0.2"
   },
   "peerDependencies": {
     "@markscript/runtime": "^0.1.0"

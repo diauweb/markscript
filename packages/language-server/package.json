@@ -52,11 +52,13 @@
     "@volar/language-server": "2.4.28",
     "@volar/language-service": "2.4.28",
     "typescript": "^6.0.2",
+    "unist-util-visit": "^5.1.0",
+    "vfile-location": "^5.0.3",
     "volar-service-markdown": "0.0.71",
     "volar-service-typescript": "0.0.71",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "vscode-languageserver-textdocument": "^1.0.12"
+    "vscode-languageserver-textdocument": "^1.0.15"
   }
 }

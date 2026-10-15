@@ -293,10 +293,12 @@
     }
   },
   "devDependencies": {
+    "@types/vscode": "^1.96.0",
     "@volar/language-server": "2.4.28",
     "@volar/vscode": "2.4.28",
-    "@types/vscode": "^1.96.0",
     "@vscode/test-electron": "^3.1.0",
-    "@vscode/vsce": "3.9.2"
+    "@vscode/vsce": "3.9.2",
+    "vscode-jsonrpc": "^9.0.3",
+    "vscode-languageserver-protocol": "^3.18.4"
   }
 }

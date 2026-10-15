@@ -49,7 +49,8 @@
     "citty": "^0.1.6",
     "mdast-util-frontmatter": "^2.0.1",
     "mdast-util-gfm": "^3.1.0",
-    "mdast-util-to-markdown": "^2.1.2"
+    "mdast-util-to-markdown": "^2.1.2",
+    "picocolors": "^1.1.1"
   },
   "peerDependencies": {
     "@markscript/runtime": "^0.1.0"
