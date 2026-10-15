@@ -3,9 +3,7 @@ import type {Nodes, Root} from 'mdast'
 import {frontmatterToMarkdown} from 'mdast-util-frontmatter'
 import {gfmToMarkdown} from 'mdast-util-gfm'
 import {toMarkdown} from 'mdast-util-to-markdown'
-
-const ESCAPE = '\u001B['
-const RESET = `${ESCAPE}0m`
+import pc from 'picocolors'
 
 interface InlineStyle {
   readonly bold?: boolean
@@ -583,16 +581,38 @@ function wrapInline(
 
 function paint(text: string, style: InlineStyle, color: boolean): string {
   if (!color || text === '') return text
-  const codes: number[] = []
-  if (style.bold) codes.push(1)
-  if (style.dim) codes.push(2)
-  if (style.italic) codes.push(3)
-  if (style.underline) codes.push(4)
-  if (style.strike) codes.push(9)
-  if (style.color !== undefined) codes.push(style.color)
-  return codes.length === 0
-    ? text
-    : `${ESCAPE}${codes.join(';')}m${text}${RESET}`
+  const c = pc.createColors(true)
+  let result = text
+  if (style.bold) result = c.bold(result)
+  if (style.dim) result = c.dim(result)
+  if (style.italic) result = c.italic(result)
+  if (style.underline) result = c.underline(result)
+  if (style.strike) result = c.strikethrough(result)
+  if (style.color !== undefined) {
+    switch (style.color) {
+      case 31:
+        result = c.red(result)
+        break
+      case 32:
+        result = c.green(result)
+        break
+      case 33:
+        result = c.yellow(result)
+        break
+      case 35:
+        result = c.magenta(result)
+        break
+      case 36:
+        result = c.cyan(result)
+        break
+      case 90:
+        result = c.gray(result)
+        break
+      default:
+        result = `\u001B[${style.color}m${result}\u001B[39m`
+    }
+  }
+  return result
 }
 
 function mergeStyle(base: InlineStyle, additional: InlineStyle): InlineStyle {
@@ -643,6 +663,9 @@ function plainText(node: Nodes): string {
 }
 
 function visibleWidth(value: string): number {
+  if (typeof Bun !== 'undefined' && typeof Bun.stringWidth === 'function') {
+    return Bun.stringWidth(value)
+  }
   let visible = ''
   for (let index = 0; index < value.length; index += 1) {
     if (value.charCodeAt(index) === 27 && value[index + 1] === '[') {
@@ -666,9 +689,5 @@ function terminalWidth(): number {
 }
 
 function terminalColorEnabled(): boolean {
-  return (
-    process.stdout.isTTY === true &&
-    process.env.NO_COLOR === undefined &&
-    process.env.TERM !== 'dumb'
-  )
+  return pc.isColorSupported
 }

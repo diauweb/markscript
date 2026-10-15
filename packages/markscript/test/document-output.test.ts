@@ -93,3 +93,30 @@ test('Markdown output covers the standard extended MDAST families', () => {
   expect(markdown).toContain('| Name')
   expect(markdown).toContain('[^detail]: Final lifecycle state.')
 })
+
+test('terminal document wrapping measures CJK characters by visible columns', () => {
+  const root: Root = {
+    type: 'root',
+    children: [
+      {
+        type: 'paragraph',
+        children: [
+          {
+            type: 'text',
+            value:
+              '这是第一段测试用的中文字符串 这是第二段测试用的中文字符串 这是第三段测试用的中文字符串',
+          },
+        ],
+      },
+    ],
+  }
+  const terminal = formatDocument(root, 'pretty', {
+    color: false,
+    width: 40,
+  })
+  const lines = terminal.split('\n').filter((line) => line.length > 0)
+  expect(lines.length).toBeGreaterThan(1)
+  for (const line of lines) {
+    expect(Bun.stringWidth(line)).toBeLessThanOrEqual(40)
+  }
+})
