@@ -2,10 +2,9 @@
 
 ## Problem
 
-The parser failed to form a MarkScript document from the Markdown, TypeScript,
-TSX, or embedded expression at the reported location.
+The parser could not form a MarkScript document from the Markdown, TypeScript, TSX, or embedded expression at the reported location.
 
 ## Fix
 
-Correct the reported source syntax first. Check delimiters around expressions,
-JSX tags and attributes, and TypeScript module statements near the location.
+First, correct the reported source syntax.
+Check expression delimiters, JSX tags and attributes, and TypeScript module statements near that location.

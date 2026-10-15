@@ -2,7 +2,7 @@
 
 ## Problem
 
-A directive attachment failed for one of these reasons:
+A directive attachment failed for one of these causes:
 
 - Its namespace is empty.
 - Its document sequence ends before a compatible node.
@@ -12,7 +12,7 @@ A directive attachment failed for one of these reasons:
 
 ## Fix
 
-Use `:search{indexed=true}` before a phrasing node or
-`::search{indexed=true}` before a flow node. Keep it in the same local sequence
-as its target. Keep the target node and `node.data` mutable during lowering.
-Any existing value at the matching `node.data` namespace must be a plain object.
+Use `:search{indexed=true}` before a phrasing node. Use `::search{indexed=true}` before a flow node.
+Keep the directive in the same local sequence as its target.
+Keep the target node and `node.data` mutable during MDAST conversion.
+Any existing value in the applicable `node.data` namespace must be a plain object.

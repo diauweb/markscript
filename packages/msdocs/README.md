@@ -1,11 +1,9 @@
 # msdocs
 
-`msdocs` is a general-purpose static-site generator for MarkScript and MDAST.
-Every CLI command takes an explicit input:
+`msdocs` generates static sites from MarkScript and MDAST. Each CLI command must have an input:
 
-- a `.ms` document becomes a one-page site;
-- a `.ts`, `.mts`, `.js`, or `.mjs` module supplies a multi-page site by
-  default-exporting a `SiteDefinition` object.
+- A `.ms` document makes a site with one page.
+- A `.ts`, `.mts`, `.js`, or `.mjs` module gives a site with multiple pages through its default `SiteDefinition` export.
 
 ## CLI
 
@@ -17,13 +15,11 @@ bun run msdocs serve examples/report.ms --port 4173
 bun run msdocs serve packages/manuals/msdocs.config.ts
 ```
 
-The MarkScript manual is an ordinary site module at
-`packages/manuals/msdocs.config.ts`. The root `bun run manual` script serves
-that module.
+The MarkScript manual uses the site module at `packages/manuals/msdocs.config.ts`.
+The root `bun run manual` script serves this module.
 
-For a one-page MarkScript site, the first level-one heading supplies the page
-and site title. Use `--title` to override the site title. `.ms` inputs also
-accept `--project` and `--transpile-only`.
+For a site from one MarkScript document, the first level-one heading gives the page and site title.
+Use `--title` to change the site title. `.ms` inputs also accept `--project` and `--transpile-only`.
 
 For a multi-page site, create a module whose default export satisfies
 `SiteDefinition`:
@@ -54,16 +50,16 @@ export default {
 } satisfies SiteDefinition
 ```
 
-Here `content.ts` exports ordinary `mdast.Root` values from the project's
-content pipeline. Build or preview the module directly:
+`content.ts` exports standard `mdast.Root` values from the project's content pipeline.
+Build or preview the module directly:
 
 ```sh
 msdocs build msdocs.config.ts --out-dir site
 msdocs serve msdocs.config.ts --port 4173
 ```
 
-Both input forms are executable. A `.ms` input runs through the complete
-MarkScript lifetime, while a site module is imported as ESM.
+Both input forms execute code. A `.ms` input executes the full MarkScript lifetime.
+The site generator imports a site module as ESM.
 
 `serve` performs one build and starts a preview server. Restart it to rebuild.
 
@@ -88,19 +84,18 @@ const server = await serveSite({directory: 'site', port: 8000})
 console.error(server.url)
 ```
 
-`buildSite` accepts a `SiteDefinition` containing a home page, navigation
-sections, and any number of MDAST page roots. `buildMarkScriptSite` is the
-one-page adapter for a MarkScript document. `buildSiteModule` imports a
-JavaScript or TypeScript site module and builds its default export.
+`buildSite` accepts a `SiteDefinition` with a home page, navigation sections, and any number of MDAST page roots.
+`buildMarkScriptSite` adapts one MarkScript document into one site page.
+`buildSiteModule` imports a JavaScript or TypeScript site module and builds its default export.
 
 ## Output ownership
 
-The default output directory is `site/`. `msdocs` records its generated files
-in `.msdocs-manifest.json`. Each build updates recorded files, removes recorded
-stale files, preserves unrelated files, and reports unowned path collisions.
+The default output directory is `site/`. `msdocs` records generated files in `.msdocs-manifest.json`.
+Each build updates recorded files and removes stale recorded files.
+It keeps unrelated files and reports path collisions with files that it does not own.
 
-The emitted files are ordinary static HTML. The preview server also exposes
-canonical extensionless routes for leaf pages and slash routes for indexes:
+The generated files use standard static HTML.
+The preview server gives extensionless routes for leaf pages and routes with a slash for indexes:
 
 ```text
 index.html
@@ -111,14 +106,14 @@ assets/msdocs.js
 404.html
 ```
 
-Multi-page sites use a filterable page sidebar. Pages with section headings
-also receive an “On this page” outline. A standalone `.ms` document uses the
-same typography without reserving space for an empty sidebar.
+Sites with multiple pages have a page sidebar with a filter.
+Pages with section headings also have an “On this page” outline.
+A standalone `.ms` document uses the same typography. It reserves no space for an empty sidebar.
 
 ## Custom MDAST conversion
 
-The standard MDAST conversion defines the built-in HTML mapping. Unknown nodes,
-including directives, use an empty default rendering.
+The standard MDAST conversion defines the built-in HTML map.
+By default, unknown nodes, including directives, make no output.
 
 `SiteDefinition.mdastToHast` accepts the standard `mdast-util-to-hast` options.
 Use `handlers` for selected node types or `unknownHandler` for a general
@@ -146,12 +141,12 @@ The callback defines the tag, attributes, children, and omission policy.
 
 ## Presentation files
 
-Presentation is kept out of TypeScript strings:
+These files define presentation:
 
-- `public/page.squirrelly` is the Squirrelly page template;
-- `public/assets/msdocs.css` is the responsive theme;
-- `public/assets/msdocs.js` provides navigation filtering and the mobile menu;
-- `public/404.html` is the preview server's 404 response page.
+- `public/page.squirrelly`: Squirrelly page template.
+- `public/assets/msdocs.css`: responsive theme.
+- `public/assets/msdocs.js`: navigation filter and mobile menu.
+- `public/404.html`: preview server 404 response page.
 
-These files are shipped with the package and copied into each build. The
-rendered MDAST body is inserted into the page template as HTML.
+The package includes these files. Each build copies them into its output.
+The page template receives the rendered MDAST body as HTML.

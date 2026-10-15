@@ -1,7 +1,7 @@
 # @markscript/markscript
 
-The public API and `markscript` command-line interface for the MarkScript
-Markdown-first document programming language.
+This package gives the public API and `markscript` command-line interface.
+MarkScript is a document programming language with Markdown syntax.
 
 ```sh
 bun add @markscript/markscript @markscript/runtime
@@ -12,5 +12,4 @@ bunx @markscript/markscript --help
 import {onReady, onTransform} from '@markscript/markscript'
 ```
 
-See the [MarkScript repository](https://github.com/diauweb/markscript) for the
-language design, examples, manuals, and editor integration.
+Refer to the [MarkScript repository](https://github.com/diauweb/markscript) for the language design, examples, manuals, and editor integration.

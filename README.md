@@ -1,31 +1,29 @@
 # MarkScript
 
-MarkScript is a Markdown-first document programming language. A `.ms` module
-combines Markdown, TypeScript expressions, constrained TSX constructors, and
-document-lifetime callbacks, then resolves to an ordinary `mdast.Root`.
+MarkScript is a document programming language with Markdown syntax.
+A `.ms` module combines Markdown, TypeScript expressions, restricted TSX constructors, and document lifetime callbacks.
+The module makes a standard `mdast.Root`.
 
-This Bun workspace implements
-[`markscript_design.md`](./markscript_design.md). Its packages keep
-the language bootstrap, manuals, and editor integrations separate:
+This Bun workspace implements [`markscript_design.md`](./markscript_design.md).
+Separate packages give the initial language build, manuals, and editor integration:
 
-- `@markscript/runtime` — JSX construction, MDAST lowering and validation,
-  directive attachment, transform callbacks, and ready callbacks;
-- `@markscript/compiler` — the TypeScript-capable MDX frontend plus
-  `check`, `compile`, and `run`;
-- `@markscript/manuals` — numbered `.ms` diagnostics, tutorials, and handbooks
-  with virtual indexes and an import-time parsed catalog;
-- `@markscript/msdocs` — general static-site generation from MarkScript or
-  MDAST site modules;
-- `@markscript/docx` — optional whole-document transforms and DOCX output over
-  finalized, readable MDAST;
-- `@markscript/markscript` — the public API and citty CLI;
-- `@markscript/language-core` — shared Volar virtual code and TypeScript projection adapter;
-- `@markscript/language-server` — Volar TypeScript/Markdown tooling plus non-executing compiler diagnostics;
-- `markscript-vscode` — `.ms` language registration, grammar, and Volar client.
+- `@markscript/runtime`: JSX construction, MDAST conversion and validation,
+  directive attachment, transform callbacks, and ready callbacks.
+- `@markscript/compiler`: MDX frontend with TypeScript support and the
+  `check`, `compile`, and `run` operations.
+- `@markscript/manuals`: numbered `.ms` diagnostics, tutorials, handbooks, virtual
+  indexes, and a catalog that the package parses on import.
+- `@markscript/msdocs`: static site generation from MarkScript or MDAST site modules.
+- `@markscript/docx`: optional transforms for the full document and DOCX
+  output from finalized, readable MDAST.
+- `@markscript/markscript`: public API and citty CLI.
+- `@markscript/language-core`: shared Volar virtual code and TypeScript projection adapter.
+- `@markscript/language-server`: Volar TypeScript and Markdown services, with static compiler diagnostics.
+- `markscript-vscode`: `.ms` language registration, grammar, and Volar client.
 
 ## Try it
 
-The npm packages use the `@markscript` scope. With Bun 1.4 or newer:
+The npm packages use the `@markscript` scope. Use Bun 1.4 or a later version:
 
 ```sh
 bun add @markscript/markscript @markscript/runtime
@@ -47,23 +45,21 @@ bun run msdocs serve examples/report.ms
 bun run manual
 ```
 
-`run` executes the complete document lifetime, awaits every `onReady` callback,
-and then writes the finalized document to stdout. Markdown is the default.
+`run` executes the full document lifetime and waits for each `onReady` callback.
+Then it writes the finalized document to stdout. Markdown is the default.
 `--format/-f` selects one of three public formats:
 
 | Format | Output |
 |---|---|
-| `markdown` | Raw finalized Markdown |
-| `mdast` | Pretty-printed MDAST JSON |
-| `pretty` | Human-friendly terminal rendering |
+| `markdown` | Finalized Markdown |
+| `mdast` | MDAST JSON with indentation |
+| `pretty` | Document display for a terminal |
 
-The format step belongs to the CLI. Imported `.ms` entries and the
-programmatic run API continue to resolve to `mdast.Root`.
+The CLI controls output format. Imported `.ms` entries and the programmatic run API return `mdast.Root`.
 
-For `run`, stdout is reserved for document output. Source code still executes
-ordinary JavaScript and can write there, but those writes will interleave with
-the selected document format. Send source-side logs to stderr, such as with
-`console.error`, when clean machine-readable stdout matters.
+For `run`, stdout contains document output. Source code can also write JavaScript output to stdout.
+Those writes mix with the selected document format.
+For clean machine-readable stdout, send source logs to stderr with a function such as `console.error`.
 
 ## Language example
 
@@ -93,11 +89,10 @@ export function Note({children}: {children?: unknown}) {
 }
 ```
 
-Imports and named exports are module-scope TypeScript. The compiler owns the
-default export, which is an async document entry returning `mdast.Root`.
-Following the MDX-shaped grammar, module blocks use exported declarations such
-as `export const value = ...`. Private declarations belong in imported
-`.ts`/`.tsx` modules.
+Imports and named exports are module-scope TypeScript. The compiler gives the default export.
+This async document entry returns `mdast.Root`.
+The MDX grammar uses exported declarations for module blocks, such as `export const value = ...`.
+Put private declarations in imported `.ts` or `.tsx` modules.
 
 ## Commands
 
@@ -109,41 +104,40 @@ markscript help [SELECTOR]
 markscript format FILE.ms [--write | --check]
 ```
 
-The source formatter uses a MarkScript Prettier plugin, shared by the CLI and
-language server. To use it directly with Prettier after building:
+The CLI and language server share a MarkScript Prettier plugin for source format.
+After the build, use the plugin directly with Prettier:
 
 ```sh
 bunx prettier --plugin @markscript/compiler/prettier examples/report.ms --check
 ```
 
-The plugin recognizes directives and preserves quoted attribute values while
-formatting TypeScript expressions.
+The plugin recognizes directives. It keeps quoted attribute values when it formats TypeScript expressions.
 
-`check`, `compile`, and `run` accept `--project tsconfig.json`. `check` performs
-static analysis, `compile` emits callable ESM, and `run` executes trusted
-TypeScript/JavaScript, including ordinary imported side effects. `run` waits for
-registered `onReady` callbacks before formatting the finalized root.
+`check`, `compile`, and `run` accept `--project tsconfig.json`.
+`check` does static analysis. `compile` emits callable ESM.
+`run` executes trusted TypeScript and JavaScript, including side effects from imports.
+It waits for registered `onReady` callbacks before it formats the finalized root.
 
-Compilation parses the Markdown/MDX-shaped surface with unified/remark,
-checks and transpiles the generated TSX module with TypeScript, and bundles
-`.ms`/`.ts` module graphs with Bun into portable callable ESM.
+The compiler parses the Markdown and MDX syntax with unified and remark.
+TypeScript checks and transpiles the generated TSX module.
+Bun bundles the `.ms` and `.ts` module graphs into portable callable ESM.
 
-MarkScript-owned codes use `SYN####`, `ERR####`, and `SUG####`. Every code has
-one human-readable source in `packages/manuals/manuals/diagnostics/`; tutorials
-and handbooks live beside that category. The build compiles these documents
-after the runtime/compiler bootstrap, then tools import the compiled manual
-catalog and its root/category indexes. CLI diagnostics print their exact
-emitted message, `markscript help CODE`, and a link to the individual `.ms`
-page; the page body itself is intentionally free-form. `help` accepts codes,
-categories, and selectors such as `TUT1001` and `HBK1003`, rendering the parsed
-MDAST for a TTY or serialized Markdown when redirected.
+MarkScript diagnostic codes use `SYN####`, `ERR####`, and `SUG####`.
+Each code has one human-readable source in `packages/manuals/manuals/diagnostics/`.
+Tutorials and handbooks have adjacent directories.
+The build compiles these documents after the initial runtime and compiler build.
+Tools then import the compiled manual catalog and its root and category indexes.
+
+CLI diagnostics show the exact emitted message, `markscript help CODE`, and a link to the `.ms` page.
+The page body can use any Markdown structure.
+`help` accepts codes, categories, and selectors such as `TUT1001` and `HBK1003`.
+It displays the parsed MDAST for a TTY. With redirected output, it writes serialized Markdown.
 
 ## Documentation sites
 
-`msdocs` is the general-purpose static-site side library. Its programmatic API
-accepts multi-page MDAST site definitions. Its CLI always takes an input: a
-`.ms` document builds one page, while a `.ts`, `.mts`, `.js`, or `.mjs` module
-default-exporting `SiteDefinition` builds a multi-page site:
+`msdocs` is a static site library. Its programmatic API accepts MDAST site definitions with multiple pages.
+Each CLI command must have an input. A `.ms` document builds one page.
+A `.ts`, `.mts`, `.js`, or `.mjs` module with `SiteDefinition` as its default export builds multiple pages:
 
 ```sh
 bun run msdocs build examples/report.ms --out-dir site
@@ -151,17 +145,15 @@ bun run msdocs serve examples/report.ms --port 8000
 bun run msdocs build packages/manuals/msdocs.config.ts --out-dir site
 ```
 
-The MarkScript manual owns that site configuration in the manuals package.
-Run `bun run manual` to serve it.
+The manuals package contains the site configuration. Run `bun run manual` to serve the site.
 
-The output is ordinary HTML, CSS, and JavaScript. Page HTML comes from the
-Squirrelly template in `packages/msdocs/public/page.squirrelly`; the stylesheet,
-navigation script, and 404 page are static files in that same `public/` tree.
-`serve` builds once and runs a Bun preview
-server. Its default MDAST conversion omits unknown node types, and site modules
-can customize conversion with standard `mdast-util-to-hast` options. See
-[`packages/msdocs/README.md`](./packages/msdocs/README.md) for the programmatic
-API, input forms, and output ownership rules.
+The output uses standard HTML, CSS, and JavaScript.
+Page HTML comes from the Squirrelly template in `packages/msdocs/public/page.squirrelly`.
+The stylesheet, navigation script, and 404 page are static files in the same `public/` directory.
+
+`serve` builds once and starts a Bun preview server. The default MDAST conversion omits unknown node types.
+Site modules can change conversion with standard `mdast-util-to-hast` options.
+Refer to [`packages/msdocs/README.md`](./packages/msdocs/README.md) for the programmatic API, input forms, and output ownership rules.
 
 ## Development
 
@@ -171,18 +163,16 @@ bun run check
 bun run biome:fix
 ```
 
-`check` runs Biome, TypeScript, and the focused behavioral suite. The full
-build keeps `@markscript/docx` as a downstream leaf while preserving the
-runtime → compiler → manuals bootstrap before the remaining tools and VS Code
-extension. See [`AGENTS.md`](./AGENTS.md) for the source index,
-generated-file boundaries, manual identity rules, and the policy of testing
-semantic risks and costly regressions.
+`check` runs Biome, TypeScript, and the behavioral tests.
+The full build keeps `@markscript/docx` as a downstream leaf package.
+It builds runtime, compiler, and manuals in that order before the other tools and VS Code extension.
+Refer to [`AGENTS.md`](./AGENTS.md) for source locations, generated files, manual identities, and the verification policy.
 
 ## Publishing
 
 All 11 library packages publish to npmjs as public `@markscript/*` packages.
-The VS Code extension is packaged separately. Build and verify the release,
-then create tarballs outside the checkout:
+The VS Code extension has a separate package.
+Build the release. Verify the release. Then create tarballs outside the checkout:
 
 ```sh
 bun install --frozen-lockfile
@@ -192,17 +182,17 @@ bun run --cwd packages/vscode-markscript smoke:lsp
 bash scripts/pack.sh /tmp/markscript-packages
 ```
 
-The **Release packages** GitHub Actions workflow also installs those tarballs
-in an isolated consumer and exercises the formatter, checker, bundled output,
-document execution, DOCX writer, manual catalog, and site generator. Running
-the workflow with `publish` disabled performs release verification.
+The **Release packages** GitHub Actions workflow installs these tarballs in an isolated consumer.
+It verifies the formatter, checker, bundle output, document execution, DOCX writer, manual catalog, and site generator.
+Run the workflow with `publish` disabled for release verification.
 
-For the first publication, sign in with `npm login` using an account with
-publishing access to the npm `markscript` organization, then publish each
-tarball with `npm publish ARCHIVE.tgz --access public`. For subsequent releases,
-configure an npm trusted publisher on each package with GitHub owner
-`diauweb`, repository `markscript`, and workflow `publish-packages.yml`, then
-run **Release packages** with `publish` enabled. The workflow publishes with
-provenance, waits up to 20 minutes for npm availability after publish-time
-scanning, and verifies a fresh registry installation. Increment package
-versions and their internal version constraints before each new release.
+For the first publication, sign in with `npm login`.
+Use an account with publication access to the npm `markscript` organization.
+Publish each tarball with `npm publish ARCHIVE.tgz --access public`.
+
+For later releases, configure an npm trusted publisher on each package.
+Use GitHub owner `diauweb`, repository `markscript`, and workflow `publish-packages.yml`.
+Run **Release packages** with `publish` enabled.
+The workflow publishes with provenance and waits up to 20 minutes for npm availability after publication scans.
+Then it verifies a new registry installation.
+Before each release, increase package versions and their internal version constraints.

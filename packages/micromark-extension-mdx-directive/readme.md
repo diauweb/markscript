@@ -1,17 +1,15 @@
 # @markscript/micromark-extension-mdx-directive
 
-MarkScript fork of `micromark-extension-directive@4.0.0`. It retains the
-upstream directive tokenizer and adds JSX-shaped `{expression}` attribute
-values plus `{...spread}` attributes through the MDX expression factory.
+This package is a MarkScript fork of `micromark-extension-directive@4.0.0`.
+It keeps the upstream directive tokenizer.
+The MDX expression factory adds JSX `{expression}` attribute values and `{...spread}` attributes.
 
 ## Development
 
-Maintain source in `src/`. The public TypeScript entrypoint owns the exported
-types and module augmentations; `src/lib/` contains the annotated JavaScript
-implementation. The tokenizer is based on upstream `dev/lib/`, with named
-character constants and development assertions. The workspace build emits
-`dist/` JavaScript and `types/` declarations before building their consumers.
-Both output directories are ignored by Git.
+Maintain source in `src/`. The public TypeScript entrypoint defines exported types and module augmentations.
+`src/lib/` contains the annotated JavaScript implementation.
+The tokenizer uses upstream `dev/lib/`, with named character constants and development assertions.
+The workspace build emits `dist/` JavaScript and `types/` declarations before consumer builds. Git ignores both directories.
 
 From the repository root:
 
@@ -31,8 +29,7 @@ bun run check
 [![Backers][backers-badge]][collective]
 [![Chat][chat-badge]][chat]
 
-[micromark][] extensions to support [directives][prop] (`:cite[smith04]` and
-such).
+These [micromark][] extensions support [directives][prop], such as `:cite[smith04]`.
 
 ## Contents
 
@@ -58,44 +55,36 @@ such).
 
 ## What is this?
 
-This package contains two extensions that add support for directive syntax in
-markdown to [`micromark`][micromark].
+This package gives two [`micromark`][micromark] extensions for Markdown directive syntax.
 
 ## When to use this
 
-This project is useful when you want to solve the need for an infinite number
-of potential extensions to markdown in a single markdown-esque way.
+Use this project for one Markdown syntax that supports any number of extensions.
 
-You can use these extensions when you are working with [`micromark`][micromark]
-already.
+Use these extensions with [`micromark`][micromark].
 
-When you need a syntax tree,
-you can combine this package with
-[`mdast-util-directive`][mdast-util-directive].
+For a syntax tree, combine this package with [`mdast-util-directive`][mdast-util-directive].
 
-All these packages are used [`remark-directive`][remark-directive],
-which focusses on making it easier to transform content by abstracting these
-internals away.
+[`remark-directive`][remark-directive] uses these packages. It hides their internal integration to make content transforms easier.
 
 ## Install
 
-This package is [ESM only][esm].
-In Node.js (version 16+),
-install with [npm][]:
+This package uses [ESM only][esm].
+In Node.js 16 or later, install it with [npm][]:
 
-[npm][]:
+Use [npm][]:
 
 ```sh
 npm install @markscript/micromark-extension-mdx-directive
 ```
 
-In Deno with [`esm.sh`][esmsh]:
+In Deno, use [`esm.sh`][esmsh]:
 
 ```js
 import {directive, directiveHtml} from 'https://esm.sh/@markscript/micromark-extension-mdx-directive@0.1'
 ```
 
-In browsers with [`esm.sh`][esmsh]:
+In browsers, use [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
@@ -105,13 +94,13 @@ In browsers with [`esm.sh`][esmsh]:
 
 ## Use
 
-Say our document `example.md` contains:
+Create `example.md` with this content:
 
 ```markdown
 A lovely language know as :abbr[HTML]{title="HyperText Markup Language"}.
 ```
 
-…and our module `example.js` looks as follows:
+Create `example.js` with this content:
 
 ```js
 /**
@@ -150,7 +139,7 @@ function abbr(d) {
 }
 ```
 
-…now running `node example.js` yields:
+Run `node example.js` to make:
 
 ```html
 <p>A lovely language know as <abbr title="HyperText Markup Language">HTML</abbr>.</p>
@@ -158,36 +147,26 @@ function abbr(d) {
 
 ## API
 
-This package exports the identifiers [`directive`][api-directive] and
-[`directiveHtml`][api-directive-html].
-There is no default export.
-It exports the [TypeScript][] types
-[`Directive`][api-directive-type],
-[`Handle`][api-handle],
-and [`HtmlOptions`][api-html-options].
+This package exports [`directive`][api-directive] and [`directiveHtml`][api-directive-html]. It has no default export.
+It also exports [TypeScript][] types [`Directive`][api-directive-type], [`Handle`][api-handle], and [`HtmlOptions`][api-html-options].
 
 The export map supports the [`development` condition][development].
-Run `node --conditions development module.js` to get instrumented dev code.
-Without this condition,
-production code is loaded.
+Run `node --conditions development module.js` for instrumented development code.
+Without this condition, the loader selects production code.
 
 ### `directive()`
 
-Create an extension for `micromark` to enable directive syntax.
+Creates a `micromark` extension for directive syntax.
 
 ###### Returns
 
-Extension for `micromark` that can be passed in `extensions`,
-to enable directive syntax
-([`Extension`][micromark-extension]).
+Returns an [`Extension`][micromark-extension] for directive syntax. Pass it in `extensions`.
 
 ### `directiveHtml(options?)`
 
-Create an extension for `micromark` to support directives when serializing to
-HTML.
+Creates a `micromark` extension for directive serialization to HTML.
 
-> 👉 **Note**:
-> this uses KaTeX to render math.
+> **Note:** This uses KaTeX for math rendering.
 
 ###### Parameters
 
@@ -197,35 +176,23 @@ HTML.
 
 ###### Returns
 
-Extension for `micromark` that can be passed in `htmlExtensions`,
-to support directives when serializing to HTML
-([`HtmlExtension`][micromark-html-extension]).
+Returns an [`HtmlExtension`][micromark-html-extension] for directive serialization to HTML. Pass it in `htmlExtensions`.
 
 ### `Directive`
 
-Structure representing a directive (TypeScript type).
+This TypeScript type describes a directive structure.
 
 ###### Fields
 
-* `type`
-  (`'containerDirective'`, `'leafDirective'`, or `'textDirective'`)
-  — kind
-* `name`
-  (`string`)
-  — name of directive
-* `label`
-  (`string` or `undefined`)
-  — compiled HTML content that was in `[brackets]`
-* `attributes`
-  (`Record<string, string>` or `undefined`)
-  — object w/ HTML attributes
-* `content`
-  (`string` or `undefined`)
-  — compiled HTML content inside container directive
+* `type` (`'containerDirective'`, `'leafDirective'`, or `'textDirective'`): Directive kind.
+* `name` (`string`): Directive name.
+* `label` (`string` or `undefined`): Compiled HTML from `[brackets]`.
+* `attributes` (`Record<string, string>` or `undefined`): Object with HTML attributes.
+* `content` (`string` or `undefined`): Compiled HTML inside a container directive.
 
 ### `Handle`
 
-Handle a directive (TypeScript type).
+This TypeScript function type processes a directive.
 
 ###### Parameters
 
@@ -236,17 +203,14 @@ Handle a directive (TypeScript type).
 
 ###### Returns
 
-Signal whether the directive was handled
-(`boolean`, default: `true`).
-Yield `false` to let the fallback (a special handle for `'*'`) handle it.
+Returns a `boolean` that indicates directive handling success. The default is `true`.
+Return `false` to use the fallback handler for `'*'`.
 
 ### `HtmlOptions`
 
 Configuration (TypeScript type).
 
-> 👉 **Note**:
-> the special field `'*'` can be used to specify a fallback handle to handle
-> all otherwise unhandled directives.
+> **Note:** The `'*'` field specifies a fallback handler for directives without a specific handler.
 
 ###### Type
 
@@ -256,19 +220,15 @@ type HtmlOptions = Record<string, Handle>
 
 ## Authoring
 
-When authoring markdown with directives,
-keep in mind that they don’t work in most places.
-On your own site it can be great!
+Most Markdown tools do not support directives. Use them on sites where you control the parser and renderer.
 
 ## HTML
 
-You can define how directives are turned into HTML.
-If directives are not handled,
-they do not emit anything.
+Define how directives convert to HTML. A directive without a handler emits no content.
 
 ## CSS
 
-How to display directives is left as an exercise for the reader.
+Define the CSS presentation for your directives.
 
 ## Syntax
 
@@ -342,40 +302,27 @@ These three are not enough to close
 So this line is also part of the container.
 ```
 
-Note that while other implementations are sometimes loose in what they allow,
-this implementation mimics CommonMark as closely as possible:
+This implementation uses CommonMark rules closely. Other implementations can accept different syntax:
 
-* whitespace is not allowed between colons and name (~~`: a`~~),
-  name and label (~~`:a []`~~),
-  name and attributes (~~`:a {}`~~),
-  or label and attributes (~~`:a[] {}`~~)
-  — because it’s not allowed in links either
-  (~~`[] ()`~~)
-* no trailing colons allowed on the opening fence of a container
-  (~~`:::a:::`~~)
-  — because it’s not allowed in fenced code either
-* the label and attributes in a leaf or container cannot include line endings
-  (~~`::a[b\nc]`~~)
-  — because it’s not allowed in fenced code either
+* Colons, names, labels, and attributes must be adjacent.
+  Spaces are invalid in ~~`: a`~~, ~~`:a []`~~, ~~`:a {}`~~, and ~~`:a[] {}`~~, as in links (~~`[] ()`~~).
+* A container opening fence cannot have trailing colons (~~`:::a:::`~~), as with code fences.
+* A leaf or container label and attributes cannot include line endings (~~`::a[b
+c]`~~), as with code fences.
 
 ## Compatibility
 
-Projects maintained by the unified collective are compatible with maintained
-versions of Node.js.
+The unified collective maintains compatibility with supported Node.js versions.
 
-When we cut a new major release,
-we drop support for unmaintained versions of Node.
-This means we try to keep the current release line,
-`micromark-extension-directive@4`,
-compatible with Node.js 16.
+New major releases remove support for unmaintained Node.js versions.
+The `micromark-extension-directive@4` release line targets Node.js 16 compatibility.
 
 This package works with `micromark` version `4` and later.
 
 ## Security
 
-This package is safe assuming that you write safe handlers.
-Any vulnerability in your code could open you to a
-[cross-site scripting (XSS)][xss] attack.
+Use safe handlers with this package.
+A handler vulnerability can permit a [cross-site scripting (XSS)][xss] attack.
 
 ## Related
 
@@ -386,14 +333,11 @@ Any vulnerability in your code could open you to a
 
 ## Contribute
 
-See [`contributing.md` in `micromark/.github`][contributing] for ways to get
-started.
-See [`support.md`][support] for ways to get help.
+Refer to [`contributing.md` in `micromark/.github`][contributing] for contribution instructions.
+Refer to [`support.md`][support] for help.
 
 This project has a [code of conduct][coc].
-By interacting with this repository,
-organization,
-or community you agree to abide by its terms.
+Interaction with the repository, organization, or community indicates agreement to its terms.
 
 ## License
 

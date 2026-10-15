@@ -1,13 +1,11 @@
 # TUT1003 — Components and directive data
 
-This intermediate tutorial creates reusable document components and attaches
-structured metadata to their MDAST output. It builds on the source forms from
-[TUT1002](./TUT1002.ms).
+This intermediate tutorial creates reusable components and attaches structured metadata to their MDAST output.
+It uses source forms from [TUT1002](./TUT1002.ms).
 
 ## Define a typed component
 
-An uppercase JSX name resolves to an ordinary TypeScript function. Its props
-are checked at each call site.
+An uppercase JSX name resolves to a standard TypeScript function. TypeScript checks its props at each call site.
 
 Add this component to `docs/report.ms`:
 
@@ -38,9 +36,8 @@ export function Summary(
 </Summary>
 ```
 
-The component runs during document rendering. It may return a primitive,
-element, fragment, array, MDAST value, or an empty value. TypeScript verifies
-the `title` and `state` props before execution.
+The component executes during rendering. It can return a primitive, element, fragment, array, MDAST value, or empty value.
+TypeScript verifies `title` and `state` props before execution.
 
 Use a fragment when a component returns several sibling nodes:
 
@@ -59,7 +56,7 @@ export function Section(
 
 ## Attach metadata with directives
 
-Directives attach named application data. Markdown supplies inline and flow
+Directives attach named application data. Markdown gives inline and flow
 attachers plus a flattened flow group:
 
 ```mdx
@@ -76,11 +73,10 @@ Ready.
 The output uses :abbr{title="HyperText Markup Language"}**HTML**.
 ```
 
-The `:` and `::` forms are zero-width and cannot use bracket labels. They
-attach to the next phrasing or flow node. The `:::` form attaches its data to
-each directly contained flow node and then disappears completely.
+The `:` and `::` forms have zero width and reject bracket labels. They attach to the next phrasing or flow node.
+The `:::` form attaches data to each directly contained flow node. Then it disappears completely.
 
-Attributes without inner braces are strings, while bare attributes are `true`.
+Attributes without inner braces are strings. Bare attributes are `true`.
 Use inner braces for TypeScript values, nested objects, and spreads:
 
 ```mdx
@@ -116,8 +112,8 @@ Directive processing follows four rules:
 
 1. Inline and flow attachers emit no node.
 2. Pending attachers target the next compatible emitted node.
-3. Consecutive values in one namespace shallow-merge.
-4. Groups annotate their emitted children and leave no trace.
+3. Consecutive values in one namespace use a shallow merge.
+4. Groups annotate emitted children and leave no trace.
 
 Later properties replace earlier properties with the same name:
 
@@ -133,10 +129,10 @@ shallow.
 
 ## Store serializable data
 
-Final metadata accepts scalars, arrays, and plain objects. This shape keeps the
-MDAST value portable between serializers and processes.
+Final metadata accepts scalars, arrays, and plain objects.
+This structure keeps MDAST portable between serializers and processes.
 
-Convert application objects to plain data before attaching them:
+Before attachment, convert application objects to plain data:
 
 ```mdx
 export const release = {
@@ -152,11 +148,10 @@ export const release = {
 # Release 2026.08
 ```
 
-Final MDAST data accepts scalars, arrays, and plain objects with data
-properties. Convert functions, accessors, class instances, maps, sets, dates,
-and response objects during the transform lifetime.
+Final MDAST data accepts scalars, arrays, and plain objects with data properties.
+During the transform lifetime, convert functions, accessors, class instances, maps, sets, dates, and response objects to plain data.
 
-## Inspect directive data
+## Examine directive data
 
 Render JSON and query it with `jq`:
 
@@ -181,7 +176,7 @@ visit(root, (node) => {
 })
 ```
 
-Use selectors for standard node properties and ordinary traversal for
+Use selectors for standard node properties and standard traversal for
 application data stored under `node.data`.
 
 ## Next

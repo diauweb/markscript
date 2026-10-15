@@ -1,8 +1,8 @@
 # TUT1005 — Transform callbacks, ready callbacks, and output pipelines
 
-This advanced tutorial edits a complete document with `onTransform`, reads the
-validated result with `onReady`, and writes reproducible CLI artifacts. Complete
-[TUT1004](./TUT1004.ms) first for project and import setup.
+This advanced tutorial changes a full document with `onTransform`.
+It reads validated results with `onReady` and writes reproducible CLI artifacts.
+First, complete [TUT1004](./TUT1004.ms) for project and import setup.
 
 ## Follow the document phases
 
@@ -23,8 +23,7 @@ The CLI formats and writes the returned root after this sequence completes.
 
 ## Register callbacks during rendering
 
-Import the lifecycle functions from `markscript` and call them in document
-expressions:
+Import lifecycle functions from `markscript`. Call them in document expressions:
 
 ```mdx
 import { onReady, onTransform } from '@markscript/markscript'
@@ -44,18 +43,15 @@ import { onReady, onTransform } from '@markscript/markscript'
 # Operations report
 ```
 
-The registration expressions emit no document nodes. Registration occurs
-during ordered rendering, including after an async component resumes; the
-callbacks themselves may be async.
+Registration expressions emit no document nodes. Registration occurs during ordered rendering, including after an async component resumes.
+Callbacks can be async.
 
-Calls made at module initialization, inside another callback, or after the
-entry has completed report `ERR1301`.
+Calls at module initialization, inside another callback, or after entry completion report `ERR1301`.
 
-## Edit the complete tree
+## Edit the full tree
 
-A transform callback receives the complete mutable root. Use it for operations
-that require document-wide information, such as assigning heading IDs,
-resolving references, rewriting nodes, and generating an outline.
+A transform receives the full mutable root.
+Use it for document-wide operations, such as heading IDs, reference resolution, node changes, and outline generation.
 
 ```mdx
 import { onTransform } from '@markscript/markscript'
@@ -79,8 +75,7 @@ import { selectAll } from 'unist-util-select'
 All regions were healthy.
 ```
 
-Transform callbacks run sequentially. Each callback observes the mutations
-completed by the previous callback:
+Transforms execute sequentially. Each sees completed changes from the previous callback:
 
 ```mdx
 {
@@ -104,10 +99,10 @@ completed by the previous callback:
 
 After the final transform callback, runtime validation checks:
 
-- node types and required fields;
-- flow, phrasing, and list content relationships;
-- one occurrence for each node object and acyclic ancestry;
-- scalar, array, or plain-object metadata values.
+- Node types and required fields.
+- Flow, phrasing, and list content relationships.
+- One occurrence per node object, without ancestry cycles.
+- Scalar, array, or plain-object metadata values.
 
 Convert application values while the tree remains mutable:
 
@@ -120,15 +115,13 @@ node.data.source = {
 }
 ```
 
-Validation rejects a root containing functions, accessors, maps, sets, dates,
-response objects, or class instances. An invalid root stops the document before
-the ready phase.
+Validation rejects roots with functions, accessors, maps, sets, dates, response objects, or class instances.
+An invalid root stops the document before ready callbacks.
 
 ## Write a final artifact
 
-An `onReady` callback receives the validated, deeply frozen root. Use it for
-serialization, publication, audit records, or requests that require the final
-document.
+An `onReady` callback receives the validated, deeply frozen root.
+Use it for serialization, publication, audit records, or requests that use the final document.
 
 ```mdx
 import { onReady, onTransform } from '@markscript/markscript'
@@ -166,29 +159,28 @@ bun run markscript check docs/report.ms
 bun run markscript run docs/report.ms > build/report.md
 ```
 
-`build/report.mdast.json` and `build/report.md` represent the same finalized
-root. The `onReady` write completes before the CLI writes Markdown to stdout.
+`build/report.mdast.json` and `build/report.md` represent the same finalized root.
+The `onReady` write completes before CLI Markdown output to stdout.
 
 ## Handle callback failures
 
 Callbacks stop at the first failure:
 
-| Failure                     | Remaining work                                                |
-| --------------------------- | ------------------------------------------------------------- |
-| Rendering or lowering fails | Transform and ready callbacks are skipped                    |
-| A transform callback fails  | Later transforms, validation, and ready callbacks are skipped |
-| Validation fails            | Ready callbacks are skipped                                   |
-| A ready callback fails      | Later ready callbacks are skipped; the entry rejects          |
-| CLI formatting fails        | Ready callbacks have already completed                        |
+| Failure | Remaining work |
+|---|---|
+| Render or MDAST conversion failure | No transform or ready callbacks |
+| Transform failure | No later transforms, validation, or ready callbacks |
+| Validation failure | No ready callbacks |
+| Ready callback failure | No later ready callbacks. The entry rejects |
+| CLI format failure | Ready callbacks are already completed |
 
-MarkScript propagates callback exceptions. Files, requests, and database writes
-completed by an earlier callback retain their external effects. Use operation
-identifiers when a caller may retry the entry.
+MarkScript propagates callback exceptions. Earlier file, network, and database operations keep their external effects.
+Use operation identifiers when the caller can retry an entry.
 
 ## Keep CLI streams separate
 
-The CLI writes the selected document format to stdout. Document code should
-write status messages to stderr:
+The CLI writes the selected document format to stdout.
+Send document status messages to stderr:
 
 ```ts
 console.error('loaded 24 records')
@@ -213,7 +205,7 @@ bun run markscript run docs/report.ms --format mdast |
 
 ## Use the programmatic result
 
-Call `runFile` when a Bun application needs the finalized root:
+Call `runFile` for the finalized root in a Bun application:
 
 ```ts
 import { runFile, stripData } from '@markscript/markscript'
@@ -227,12 +219,11 @@ console.log(root.type)
 console.log(rootWithoutData.children.length)
 ```
 
-`runFile` returns MDAST without CLI formatting. `stripData` creates a detached
-copy and removes every node's `data` field.
+`runFile` returns MDAST directly. `stripData` creates a detached copy without node `data` fields.
 
 ## Automate the workflow
 
-Use the commands according to the artifact being produced:
+Use the commands according to the artifact being made:
 
 | Command                  | Result                                     | Executes document code? |
 | ------------------------ | ------------------------------------------ | ----------------------- |
@@ -242,8 +233,7 @@ Use the commands according to the artifact being produced:
 | `run FILE.ms`            | Returns and formats the finalized document | yes                     |
 | `help SELECTOR`          | Displays a manual page or index            | no                      |
 
-A CI sequence can format-check, type-check, compile, and then run an approved
-entry:
+A CI sequence can check source format and types, compile, and run an approved entry:
 
 ```sh
 bun run markscript format docs/report.ms --check
@@ -258,9 +248,8 @@ bun run markscript run docs/report.ms \
   > build/report.json
 ```
 
-The [runtime handbook](../handbooks/HBK1002.ms) defines callback registration,
-validation, freezing, concurrency, and failure behavior in detail. The
-[CLI handbook](../handbooks/HBK1004.ms) lists every command and option.
+The [runtime handbook](../handbooks/HBK1002.ms) defines registration, validation, freezing, concurrency, and failure behavior.
+The [CLI handbook](../handbooks/HBK1004.ms) lists commands and options.
 
 ## Next
 

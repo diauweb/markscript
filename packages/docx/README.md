@@ -1,20 +1,17 @@
 # `@markscript/docx`
 
-`@markscript/docx` turns a complete MarkScript MDAST document into a `.docx`
-file. Its transform stage resolves Word semantics into ordinary, readable MDAST
-and plain `data.docx` objects. `writeDocx` then consumes that finalized tree; it
-does not render MarkScript or run transforms.
+`@markscript/docx` converts a full MarkScript MDAST document to a `.docx` file.
+Its transform stage resolves Word semantics into standard readable MDAST and plain `data.docx` objects.
+`writeDocx` then uses the finalized tree. It performs output only, after MarkScript rendering and transforms.
 
-The published package bundles its patched `docx` engine, preserving character
-indentation, line-based paragraph spacing, and custom paragraph/character
-styles alongside external styles. The `docx` dependency supplies the public
-option types.
+The published package bundles its patched `docx` engine.
+It keeps character indentation, line-based paragraph spacing, and custom paragraph and character styles with external styles.
+The `docx` dependency gives public option types.
 
-## Complete document setup
+## full document setup
 
-Call `hookDocx` directly while the document renders. The hook registers one
-whole-document `onTransform` callback. Call `writeDocx` from `onReady`, where
-the document is complete, validated, and frozen.
+During document rendering, call `hookDocx` directly. The hook registers one `onTransform` callback for the full document.
+Call `writeDocx` from `onReady`. At this point, the document is completed, validated, and frozen.
 
 ```tsx
 import {onReady} from '@markscript/markscript'
@@ -66,7 +63,7 @@ The source is linked in Word {<Cite keys="kay-2025" source="main" />}.
 {onReady(({root}) => writeDocx(root, './quarterly-report.docx'))}
 ```
 
-The hook always invokes the direct transforms in this order:
+The hook calls direct transforms in this order:
 
 1. `transformSatori(root, options.satori)`
 2. `transformEcharts(root, options.echarts)`
@@ -74,9 +71,7 @@ The hook always invokes the direct transforms in this order:
 4. `transformCodeHighlight(root, options.code)`
 5. `resolveDocx(root, options)`
 
-There is no format switch, renderer registration, or backend selection in this
-package. To use only selected behavior, register the exported root-first
-transforms with the existing runtime API:
+To use selected behavior, register the exported transforms with the runtime API. Each transform takes the root first:
 
 ```tsx
 import {onTransform} from '@markscript/markscript'
@@ -90,38 +85,35 @@ import {resolveDocx, transformCodeHighlight} from '@markscript/docx'
 
 ## Word construct mapping
 
-The following table is the direct mapping from Word concepts to MarkScript and
-the finalized MDAST contract.
+This table maps Word concepts to MarkScript and the finalized MDAST contract.
 
 | Word construct | MarkScript form | Final MDAST data |
 |---|---|---|
 | Document metadata, styles, numbering, settings | `hookDocx({document: {...}})` | `root.data.docx.document` |
-| Paragraph formatting | `{attach('docx', {paragraph: {...}})}` before an ordinary paragraph, or `withDocx(node, {...})` | `node.data.docx.paragraph` |
-| Empty paragraph | an explicit `<p />` | ordinary paragraph with no children |
+| Paragraph formatting | `{attach('docx', {paragraph: {...}})}` before a standard paragraph, or `withDocx(node, {...})` | `node.data.docx.paragraph` |
+| Empty paragraph | an explicit `<p />` | standard paragraph with no children |
 | Run formatting | `<Span run={{...}}>…</Span>` or `withDocx(node, {run: {...}})` | `node.data.docx.run` |
-| Page break | `<PageBreak />` or `::docx-page-break` before its target block | ordinary empty paragraph or target node with `data.docx.pageBreak: true` |
-| Section boundary | `<Section section="landscape" />` or `::docx-section{section=landscape}` before its target block | ordinary empty paragraph or target node with resolved `data.docx.section` |
-| Page, count, date, sequence, reference, or custom field | `<Field kind="pageNumber">1</Field>` or `:docx-field{kind=pageNumber cached=1}` before phrasing content | ordinary text or target node with `data.docx.field` |
-| Table of contents | `<Toc headingStyleRange="1-3" />` or `::docx-toc{headingStyleRange="1-3" hyperlink}` before its target block | ordinary paragraph or target node with `data.docx.toc` and cached headings |
+| Page break | `<PageBreak />` or `::docx-page-break` before its target block | standard empty paragraph or target node with `data.docx.pageBreak: true` |
+| Section boundary | `<Section section="landscape" />` or `::docx-section{section=landscape}` before its target block | standard empty paragraph or target node with resolved `data.docx.section` |
+| Page, count, date, sequence, reference, or custom field | `<Field kind="pageNumber">1</Field>` or `:docx-field{kind=pageNumber cached=1}` before phrasing content | standard text or target node with `data.docx.field` |
+| Table of contents | `<Toc headingStyleRange="1-3" />` or `::docx-toc{headingStyleRange="1-3" hyperlink}` before its target block | standard paragraph or target node with `data.docx.toc` and cached headings |
 | Tab | `<Tab />` or `:docx-tab` before phrasing content | zero-width text or target node with `data.docx.tab: true` |
-| Normal or nonbreaking space | `<Space count={2} />`, `<Space nonBreaking />` | ordinary text containing spaces or `U+00A0` |
-| Caption | `<Caption id="plot">Latency</Caption>` | ordinary paragraph with visible resolved number and `data.docx.caption` |
-| Cross-reference | `<Ref target="plot" />` | ordinary link with resolved field fallback in `data.docx.reference` |
-| Citation | `:cite{keys=alpha}` before citation text, or `<Cite keys={['alpha', 'beta']} source="main" />` | readable citation content containing ordinary internal links |
-| Bibliography | `<Bibliography source="main" title="References" includeUncited />` | ordinary heading and bookmarked paragraphs |
-| Table, row, and cell options | `docxTable(...)` or `withDocx` on normal GFM table nodes | `data.docx.table`, `.row`, and `.cell` |
-| Image options | `<DocxImage ... image={{...}} />` or `withDocx(image, {image: {...}})` | normal MDAST image with `data.docx.image` |
-| Highlighted fenced code | normal fenced code with a supported language | unchanged code node plus plain `data.docx.code.lines` tokens |
-| Satori visual | a `satori` fenced code block | normal SVG or requested PNG image node |
-| ECharts visual | an `echarts` fenced code block | normal SVG image node |
+| Standard or nonbreaking space | `<Space count={2} />`, `<Space nonBreaking />` | standard text containing spaces or `U+00A0` |
+| Caption | `<Caption id="plot">Latency</Caption>` | standard paragraph with visible resolved number and `data.docx.caption` |
+| Cross-reference | `<Ref target="plot" />` | standard link with resolved field fallback in `data.docx.reference` |
+| Citation | `:cite{keys=alpha}` before citation text, or `<Cite keys={['alpha', 'beta']} source="main" />` | readable citation content containing standard internal links |
+| Bibliography | `<Bibliography source="main" title="References" includeUncited />` | standard heading and bookmarked paragraphs |
+| Table, row, and cell options | `docxTable(...)` or `withDocx` on standard GFM table nodes | `data.docx.table`, `.row`, and `.cell` |
+| Image options | `<DocxImage ... image={{...}} />` or `withDocx(image, {image: {...}})` | standard MDAST image with `data.docx.image` |
+| Highlighted fenced code | standard fenced code with a supported language | unchanged code node plus plain `data.docx.code.lines` tokens |
+| Satori visual | a `satori` fenced code block | standard SVG or requested PNG image node |
+| ECharts visual | an `echarts` fenced code block | standard SVG image node |
 | Unsafe OOXML escape hatch | an `ooxml` fenced code block | HTML node with validated `data.docx.rawXml` |
 
-All option values under `data.docx` use the corresponding `docx` package option
-shape directly. There is no style registry or second inheritance model.
-`docx.js` and Word resolve style inheritance.
+Option values under `data.docx` use the corresponding `docx` package option structure directly.
+`docx.js` and Word resolve style inheritance with their own model.
 
-Ordinary Markdown needs no Word wrapper. The writer maps standard nodes as
-follows:
+Use standard Markdown directly, without a Word wrapper. The writer maps standard nodes with these rules:
 
 | Standard MDAST | Word output |
 |---|---|
@@ -138,9 +130,8 @@ follows:
 
 ## DOCX directive data
 
-The `attach('docx', ...)` helper attaches Word options to the exact next
-compatible MDAST node. Named DOCX directives handle their corresponding
-string-valued source forms.
+`attach('docx', ...)` attaches Word options to the exact next compatible MDAST node.
+Named DOCX directives process their corresponding source forms with string values.
 
 ```mdx
 {attach('docx', {paragraph: {style: 'ReportBody', keepNext: true}})}
@@ -156,17 +147,15 @@ This paragraph receives `data.docx.paragraph`.
 <img src="./request-flow.png" alt="Request flow" />
 ```
 
-At root or block scope, place `attach('docx', ...)` immediately before the
-Markdown block. Within a paragraph, place it immediately before the exact
-phrasing node, link, or image it should annotate. Consecutive attachments
-shallow-merge in the same namespace. Object-valued options remain natural
-`docx.js` shapes; the library reads the resulting `node.data.docx` directly.
+At root or block scope, put `attach('docx', ...)` immediately before the Markdown block.
+Inside a paragraph, put it immediately before the target phrasing node, link, or image.
+Consecutive attachments use a shallow merge in the same namespace.
+Object-valued options use `docx.js` structures. The library reads `node.data.docx` directly.
 
-## Formatting ordinary MDAST
+## Formatting standard MDAST
 
-Use ordinary Markdown for paragraphs and bind Word formatting directly to the
-next paragraph. Use `<p />` when the document intentionally needs a blank
-paragraph.
+Use standard Markdown for paragraphs. Attach Word format options directly to the next paragraph.
+For an explicit blank paragraph, use `<p />`.
 
 ```tsx
 import {
@@ -204,22 +193,19 @@ import {
 />}
 ```
 
-`Span` applies one natural `IRunOptions`-shaped object to all of its
-phrasing descendants. `docxTable` and `DocxImage` attach table, row, cell, and
-image options without replacing their normal MDAST content. Programmatic MDAST
-can use `withDocx(node, {paragraph: {...}})`. The `mm`, `cm`, `inch`, `pt`, and
-`percent` helpers create the measure strings accepted by `docx.js`.
+`Span` applies one `IRunOptions` object to all phrasing descendants.
+`docxTable` and `DocxImage` attach table, row, cell, and image options and keep standard MDAST content.
+Programmatic MDAST can use `withDocx(node, {paragraph: {...}})`.
+The `mm`, `cm`, `inch`, `pt`, and `percent` helpers create measure strings that `docx.js` accepts.
 
-The public document type intentionally excludes SDK object fields such as
-embedded font buffers, comment children, imported style components, and
-section wrapper classes. Final `data.docx` is plain JSON-roundtrippable data.
-External image bytes are likewise resolved only when writing.
+The public document type excludes SDK object fields: embedded font buffers, comment children, imported style components, and section wrapper classes.
+Final `data.docx` is plain data that supports JSON round-trip conversion.
+The writer resolves external image bytes only during output.
 
 ## Sections, headers, and footers
 
-Name reusable sections in the hook and place a readable section directive at
-each boundary. A section object uses natural `docx.js` section property shapes;
-headers and footers are standard MDAST roots.
+Name reusable sections in the hook. Put a readable section directive at each boundary.
+A section object uses `docx.js` section property structures. Headers and footers are standard MDAST roots.
 
 ```tsx
 import {docxPart, hookDocx, Section, SectionBreak} from '@markscript/docx'
@@ -245,15 +231,13 @@ import {docxPart, hookDocx, Section, SectionBreak} from '@markscript/docx'
 {<SectionBreak section="portrait" breakBefore="nextPage" />}
 ```
 
-`Section` starts the selected section. `SectionBreak` additionally sets
-`breakBefore`, which defaults to `nextPage`. The literal directive accepts
-`continuous`, `nextPage`, `evenPage`, or `oddPage`.
+`Section` starts the selected section. `SectionBreak` also sets `breakBefore`, with `nextPage` as the default.
+The literal directive accepts `continuous`, `nextPage`, `evenPage`, or `oddPage`.
 
 ## Fields, captions, references, and bibliography
 
-JSX helpers emit ordinary MDAST directly. Their source-directive counterparts
-are zero-width attachers whose data is materialized on ordinary readable MDAST
-content.
+JSX helpers emit standard MDAST directly. Corresponding source directives are zero-width attachers.
+Their data becomes part of standard readable MDAST content.
 
 ```markdown
 :docx-field{kind=pageNumber cached=1}**1** of :docx-field{kind=pageCount cached=10}**10**
@@ -274,25 +258,21 @@ Latency by region
 ## References
 ```
 
-`resolveDocx` numbers captions and bibliography records in document order,
-creates deterministic valid Word bookmark names, updates visible fallback
-text, resolves references, and expands bibliography markers. Citations become
-ordinary internal MDAST links to their bibliography entries. A custom
-`formatCitation(records, numbers)` or
-`formatBibliographyEntry(record, number)` may return a string or promise; only
-its returned text enters the final tree. A custom `formatCitation` is accepted
-for a one-key citation, where the complete custom text has one unambiguous
-bibliography link. Multi-key citations use the built-in linked form such as
-`[1, 2]` and do not call the formatter; split custom styling into adjacent
-one-key citations.
+`resolveDocx` numbers captions and bibliography records in document order.
+It creates deterministic valid Word bookmark names, updates visible fallback text, resolves references, and expands bibliography markers.
+Citations become standard internal MDAST links to bibliography entries.
 
-`:cite{keys=key}` is the concise authored form. Separate multiple keys with
-commas or semicolons; it applies the superscript run style used by numeric Word
-citations to the following phrasing node. `:docx-citation` and `<Cite>` are the
-neutral, non-superscript forms for custom presentation.
+A custom `formatCitation(records, numbers)` or `formatBibliographyEntry(record, number)` can return a string or promise.
+Only the returned text enters the final tree.
+A one-key citation accepts custom `formatCitation` because its full text has one unambiguous bibliography link.
+Multiple-key citations use the built-in linked form, such as `[1, 2]`, and omit the formatter call.
+For custom styles on multiple keys, use adjacent one-key citations.
 
-Bibliography sources can be supplied directly, as named sources, or with an
-explicit default:
+`:cite{keys=key}` is the short source form. Separate multiple keys with commas or semicolons.
+It applies the numeric Word citation superscript run style to the next phrasing node.
+Use `:docx-citation` or `<Cite>` for custom presentation without superscript.
+
+Give bibliography sources directly, as named sources, or with an explicit default:
 
 ```tsx
 {hookDocx({
@@ -308,9 +288,9 @@ explicit default:
 
 ## Satori, ECharts, and OOXML fences
 
-Each consumer selects an ordinary fenced code node by `lang`. A preceding
-attachment supplies computed options through `data.satori`, `data.echarts`, or
-`data.ooxml`; otherwise directive attributes supply string-valued options.
+Each consumer selects a standard code-fence node by `lang`.
+A preceding attachment gives computed options through `data.satori`, `data.echarts`, or `data.ooxml`.
+Otherwise, directive attributes give string-valued options.
 
 ```tsx
 import {readFileSync} from 'node:fs'
@@ -368,24 +348,22 @@ export const interFontPath = fileURLToPath(
 ```
 ```
 
-The `satori` transform requires explicit positive `width` and `height`,
-non-empty `alt`, and at least one configured font. The fence body is compiled
-as a self-contained TSX fragment with Satori's JSX factory.
+For `satori`, give explicit positive `width` and `height`, non-empty `alt`, and at least one configured font.
+The compiler processes the fence body as a self-contained TSX fragment with Satori's JSX factory.
 
-Satori output is SVG by default. `format="png"` rasterizes the generated SVG;
-`pixelRatio` controls its pixel density while the Word placement retains the
-declared width and height. This is useful when a target Word version cannot
-display SVG reliably.
+Satori output uses SVG by default. `format="png"` converts the generated SVG to PNG.
+`pixelRatio` controls pixel density. Word placement keeps the declared width and height.
+Use PNG when the target Word version cannot display SVG reliably.
 
-The `echarts` transform requires the same dimensions and alt text plus an object-valued
-`option`. It uses ECharts server-side SVG rendering. `echarts.fontFiles`
-provides explicit fonts for a deterministic PNG fallback, including every text
-glyph when a Word client cannot display SVG. Both transforms replace the fence
-with a normal MDAST image whose source is an SVG data URL and whose
-`data.docx.image` contains direct image options. The generated fallback is a
-plain PNG data URL in `data.docx.image.fallback`.
+For `echarts`, give the same dimensions and alt text, plus an object-valued `option`.
+It uses ECharts server-side SVG rendering.
+`echarts.fontFiles` gives explicit fonts for a deterministic PNG fallback, including each text glyph for Word clients without SVG support.
 
-The `ooxml` language is an explicit unsafe escape hatch:
+Both transforms replace the fence with a standard MDAST image.
+Its source is an SVG data URL. Its `data.docx.image` contains direct image options.
+The generated fallback is a plain PNG data URL in `data.docx.image.fallback`.
+
+The `ooxml` language gives explicit unsafe XML access:
 
 ````md
 ```ooxml
@@ -395,18 +373,17 @@ The `ooxml` language is an explicit unsafe escape hatch:
 ```
 ````
 
-The body must be well-formed XML with exactly one root element. Declarations,
-DTDs, entity declarations, multiple roots, and non-whitespace outer text are
-rejected. Normal XML escaping such as `&amp;` remains valid.
-OOXML fences are block content. The transform accepts arbitrary qualified names
-and namespaces while rejecting a `w:r` run as a block root.
+The body must contain well-formed XML with exactly one root element.
+The transform rejects declarations, DTDs, entity declarations, multiple roots, and non-whitespace text outside the root.
+Standard XML escapes such as `&amp;` are valid.
+OOXML fences are block content.
+The transform accepts any qualified names and namespaces. It rejects a `w:r` run as a block root.
 
 ## Resource resolution and writing
 
-`writeDocx(root, output, options)` accepts a filesystem path or file URL and
-writes atomically. Data URLs for PNG, JPEG, GIF, BMP, and SVG images are handled
-directly. Resolve other image sources at write time so bytes never enter the
-frozen MDAST:
+`writeDocx(root, output, options)` accepts a filesystem path or file URL and writes atomically.
+It directly processes PNG, JPEG, GIF, BMP, and SVG image data URLs.
+Resolve other image sources during output to keep bytes outside frozen MDAST:
 
 ```tsx
 {onReady(({root}) => writeDocx(root, './report.docx', {
@@ -423,7 +400,7 @@ frozen MDAST:
 }))}
 ```
 
-An SVG image may set `data.docx.image.fallback` to a PNG/JPEG data URL or
-resource source. A resource resolver may instead return binary `fallback`
-output. Otherwise the writer uses Resvg without ambient system fonts to create
-one. The resolver is an output-time service and is never stored in `root.data`.
+An SVG image can set `data.docx.image.fallback` to a PNG/JPEG data URL or resource source.
+A resource resolver can instead return binary `fallback` output.
+Otherwise, the writer uses Resvg without system fonts to create a fallback.
+The resolver is an output-time service. It is separate from `root.data`.

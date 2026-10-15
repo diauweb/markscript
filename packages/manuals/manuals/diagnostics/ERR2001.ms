@@ -2,8 +2,9 @@
 
 ## Problem
 
-Bundled compilation requires a runtime that exposes Bun's build API.
+Bundle compilation must use a runtime with Bun's build API.
 
 ## Fix
 
-Run the command with Bun, or use non-bundled compilation when the Bun build API is unavailable.
+Run the command with Bun.
+If Bun's build API is unavailable, use compilation without a bundle.

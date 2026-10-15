@@ -1,85 +1,71 @@
 # MarkScript for VS Code
 
-This extension adds MarkScript language support for `.ms` documents:
-parser-driven semantic highlighting for Markdown, TypeScript/TSX modules and
-expressions, MDX-shaped tags, nested in-tag Markdown, document macros,
-directive attachment and groups, and ordinary fenced consumer languages,
-diagnostics and TypeScript-powered completion, hover docs,
-signature and parameter help, definitions, type definitions, references,
-document highlights, rename, safe code actions, formatting, and semantic
-highlighting from the bundled language server. TypeScript completion preserves
-signature/type label details, Markdown JSDoc, deprecation, snippets,
-replacement ranges, commit characters, and project-local auto-import edits.
-Markdown labels, heading fragments, and the document outline are
-language-server aware as well, and completion remains available while common
-expression and macro-tag edits are temporarily incomplete.
-Intrinsic names and attributes, directives, fenced-code languages, and nearest
-closing tags are completed alongside project-defined TypeScript components.
+This extension adds MarkScript language support for `.ms` documents.
+The bundled language server gives these features:
 
-The Volar language client owns `.ms`, TypeScript, TSX, JavaScript, and JSX
-documents. Ordinary TypeScript and JavaScript files therefore use the same
-authored `.ms` module contract without a separate TypeScript server plugin.
-Named exports retain their declared types, the default export is
-`() => Promise<mdast.Root>`, and navigation, references, and rename map
-directly to authored `.ms` spans.
+- Semantic tokens for Markdown, TypeScript and TSX modules and expressions, MDX tags, and Markdown inside tags.
+- Support for document macros, directive attachments and groups, and consumer languages in code fences.
+- Diagnostics, completion, hover documentation, signature help, and parameter help.
+- Definitions, type definitions, references, document highlights, rename, safe code actions, and source format.
 
-VS Code does not expose an extension API for disabling its built-in TypeScript
-providers. For exclusive Volar takeover in a MarkScript workspace, disable the
-built-in **TypeScript and JavaScript Language Features** extension for that
-workspace. If it remains enabled, VS Code may request overlapping TypeScript
-features from both providers.
+TypeScript completion keeps signature and type labels, Markdown JSDoc, deprecation, snippets, replacement ranges, commit characters, and project-local auto-import edits.
+The language server also supports Markdown labels, heading fragments, and the document outline.
+Completion stays available during common incomplete edits to expressions and macro tags.
+It includes intrinsic names and attributes, directives, code-fence languages, the nearest closing tags, and project-defined TypeScript components.
 
-Semantic tokens from the language server are the highlighting authority. They
-combine the parsed MarkScript tree with TypeScript syntactic and semantic
-classifications and are enabled for `.ms` files by default. The bundled
-TextMate grammar provides only immediate startup and server-unavailable
-fallback coloring. TypeScript punctuation is kept separate from MarkScript
-delimiters; directive names use decorator semantics, macros use function
-semantics, and intrinsic elements use tag semantics. Indented multiline
-expression islands remain fully mapped to TypeScript after Markdown indentation
-normalization.
+The Volar language client controls `.ms`, TypeScript, TSX, JavaScript, and JSX documents.
+TypeScript and JavaScript files use the same authored `.ms` module contract. This integration uses no separate TypeScript server plugin.
+Named exports keep their declared types. The default export is `() => Promise<mdast.Root>`.
+Navigation, references, and rename map directly to authored `.ms` source ranges.
 
-The extension launches its packaged server with Bun. If `bun` is absent from
-the VS Code extension host's `PATH`, set `markscript.server.runtime` to the Bun
-executable. Set `markscript.server.path` only when developing against a custom
-server build; relative paths resolve from the first workspace folder and may
-use `${workspaceFolder}`.
+VS Code gives no extension API to disable its built-in TypeScript providers.
+For exclusive Volar control, disable **TypeScript and JavaScript Language Features** for the MarkScript workspace.
+If this extension stays enabled, VS Code can request the same TypeScript features from both providers.
 
-The packaged server includes the declaration-only MarkScript/Bun type environment needed to validate standalone workspaces. Project-installed packages and tsconfig declarations still take precedence during normal module resolution.
+The language server gives the semantic tokens. Tokens combine the parsed MarkScript tree with TypeScript syntax and semantic classifications.
+The extension enables them for `.ms` files by default.
+The TextMate grammar gives initial colors and fallback colors when the server is unavailable.
 
-Validation is enabled by default. MarkScript follows Volar and TypeScript project
-ownership: files use their nearest `tsconfig.json` or `jsconfig.json`, and files
-outside a configured project use an inferred project.
+TypeScript punctuation stays separate from MarkScript delimiters. Directive names use decorator semantics.
+Macros use function semantics. Intrinsic elements use tag semantics.
+After Markdown indentation normalization, indented multiline expression islands keep their full TypeScript maps.
 
-Use **MarkScript: Restart Language Server** after changing either server setting.
+The extension starts its packaged server with Bun.
+If the extension host's `PATH` does not contain `bun`, set `markscript.server.runtime` to the Bun executable.
+For a custom server build, set `markscript.server.path`.
+Relative paths use the first workspace folder as their base. They can include `${workspaceFolder}`.
 
-The command palette provides **MarkScript: Check File**, **Check Workspace**,
-**Run File**, **Restart Language Server**, **Reload Projects**,
-**Find File References**, **Open Project Configuration**,
-**Select TypeScript Version**, and **Show Language Server Output**. Check and
-Run use the CLI bundled with the extension. Run is the only editor workflow
-that executes a document; normal analysis and checking are static.
+The packaged server includes MarkScript and Bun type declarations for standalone workspaces.
+Project-installed packages and tsconfig declarations have priority during standard module resolution.
+
+The extension enables validation by default. MarkScript uses Volar and TypeScript project ownership.
+Files use their nearest `tsconfig.json` or `jsconfig.json`. Files outside a configured project use an inferred project.
+
+After a change to either server setting, use **MarkScript: Restart Language Server**.
+
+The command palette gives these commands:
+
+- **MarkScript: Check File** and **Check Workspace**.
+- **Run File**, **Restart Language Server**, and **Reload Projects**.
+- **Find File References** and **Open Project Configuration**.
+- **Select TypeScript Version** and **Show Language Server Output**.
+
+Check and Run use the bundled CLI. Run executes a document. Standard analysis and checks process source code statically.
 
 ## Development
 
-From this package, run `bun run build`. The build bundles the extension client
-as `dist/extension.cjs`, bundles `../language-server/src/server.ts` as
-`dist/server.js`, stages its declaration-only fallback under
-`dist/node_modules/`, and copies the authored `.ms` pages into `manuals/` for
-diagnostic help links.
+From this package, run `bun run build`.
+The build bundles the extension client as `dist/extension.cjs` and `../language-server/src/server.ts` as `dist/server.js`.
+It puts fallback type declarations under `dist/node_modules/`.
+It copies authored `.ms` pages into `manuals/` for diagnostic help links.
 
-Run `bun run package:vsix` to rebuild and create an installable
-`markscript-vscode-VERSION.vsix`. Packaging uses `.vscodeignore` to include
-only the manifest, language configuration, grammar, bundled client/server and
-its declaration environment, README, and authored manual pages.
+Run `bun run package:vsix` to rebuild and create `markscript-vscode-VERSION.vsix`.
+Packaging uses `.vscodeignore` to select the manifest, language configuration, grammar, bundled client and server, type declarations, README, and manual pages.
 
-After building, `bun run smoke:lsp` launches the packaged `dist/server.js` and
-verifies its real stdio protocol surface: initialization, diagnostics,
-completion and rich detail resolution, signature help, Markdown hover,
-definitions, references, semantic tokens, Markdown completion, and document
-symbols.
+After the build, run `bun run smoke:lsp`.
+The command starts the packaged `dist/server.js` and verifies its stdio protocol.
+Checks include initialization, diagnostics, completion details, signature help, Markdown hover, definitions, references, semantic tokens, Markdown completion, and document symbols.
 
-`bun run test:extension-host` downloads/caches the official VS Code test build
-and verifies activation, diagnostics and dependency/config refresh, language
-features, TypeScript-to-MarkScript navigation, formatting, Check Workspace,
-and Run File in an actual Extension Development Host.
+`bun run test:extension-host` downloads and caches the official VS Code test build.
+It verifies activation, diagnostics, dependency and configuration refresh, language features, TypeScript-to-MarkScript navigation, source format, Check Workspace, and Run File.
+The checks use an actual Extension Development Host.

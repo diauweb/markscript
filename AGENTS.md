@@ -1,33 +1,33 @@
 # MarkScript agent index
 
-`markscript_design.md` is the product authority. Change the design and
-implementation together when a decision changes. Implement unshipped APIs
-directly against the current contract.
+`markscript_design.md` defines the product contract. When a decision changes,
+change the design and implementation together. Implement unshipped APIs
+with the current contract.
 
 ## Quality Requirements
 
-Write concise, modern code and follow these rules:
+Write short, clear code. Obey these rules:
 
-1. **Current Contract:** Target the latest requirement directly. Unshipped APIs
-   use the current design without compatibility machinery. Do not explain or
-   comment indeterminate decisions.
-2. **Purposeful Verification:** Verify checksums or hashes when they are part of
-   a functional requirement.
-3. **Essential Tests:** Cover critical business logic, semantic boundaries,
+1. **Current contract:** Implement the latest requirement. Use the current
+   design for unshipped APIs. Add no compatibility code for earlier designs.
+   Explain only decisions that the requirements define.
+2. **Verification:** Verify checksums or hashes only when a functional
+   requirement includes this verification.
+3. **Tests:** Include tests for critical business logic, semantic boundaries,
    edge cases, and costly regressions.
-4. **Implementation-Focused Communication:** Describe delivered behavior,
-   relevant decisions, and verification evidence in affirmative terms.
-5. **Focused Scope:** Keep features within the requested package or layer.
-   Update downstream consumers when required to preserve their current
-   contract. Request approval for a broader product change.
+4. **Communication:** Describe the delivered behavior, applicable decisions,
+   and verification results with affirmative statements.
+5. **Scope:** Keep features in the specified package or layer. Update downstream
+   consumers as necessary to keep their current contract.
+   Get approval before a wider product change.
 
 ## Build order
 
-The directive tokenizer, MDAST adapter, and Remark plugin build first from
-their `src/` directories. Their generated `dist/` and `types/` directories are
-bootstrap inputs for the runtime and compiler.
+First, build the directive tokenizer, MDAST adapter, and Remark plugin from
+their `src/` directories. The runtime and compiler use the generated `dist/`
+and `types/` directories as initial build inputs.
 
-The dependency order is intentional:
+Build the dependencies in this order:
 
 ```text
 @markscript/runtime --------------------> @markscript/docx  (optional leaf)
@@ -50,9 +50,9 @@ The dependency order is intentional:
 language server -----------------------> VS Code extension
 ```
 
-Run `bun run build` when a change crosses package boundaries. The runtime and
-compiler stay independent of the compiled manual catalog because they bootstrap
-the `.ms` compiler used to build it.
+When a change affects more than one package, run `bun run build`.
+The runtime and compiler build the `.ms` compiler that creates the manual catalog.
+Thus, neither package depends on the compiled catalog.
 
 ## Source map
 
@@ -72,28 +72,25 @@ the `.ms` compiler used to build it.
 | Volar language services and LSP adapter | `packages/language-server/src/` |
 | Volar VS Code client, grammar, and packaging | `packages/vscode-markscript/` |
 
-`check` and `compile` perform static source processing. `run` is trusted code
-execution. Preserve that boundary when changing loaders, bundling, diagnostics,
-or editor features.
+`check` and `compile` process source code statically. `run` executes trusted code.
+Keep this boundary when you change loaders, bundles, diagnostics, or editor features.
 
-`msdocs build INPUT` and `msdocs serve INPUT` are also trusted execution.
-`INPUT` is required and is either one `.ms` page or a JavaScript/TypeScript
-module that default-exports a site definition. The manual site uses
-`packages/manuals/msdocs.config.ts`. Keep page markup in
-`packages/msdocs/public/page.squirrelly` and browser presentation in static
-`public/` assets.
+`msdocs build INPUT` and `msdocs serve INPUT` also execute trusted code.
+`INPUT` must be one `.ms` page or a JavaScript or TypeScript module with a site definition as its default export.
+The manual site uses `packages/manuals/msdocs.config.ts`.
+Keep page markup in `packages/msdocs/public/page.squirrelly`.
+Keep browser presentation in static `public/` assets.
 
-`markscript run` awaits the complete lifetime, including async `onReady`
-callbacks, before writing the finalized document. Its public format names are
-only `markdown`, `mdast`, and `pretty`; Markdown is the default. The
-programmatic ABI remains `mdast.Root`. Reserve
-stdout for document output, and use stderr for source-side logging when clean
-machine output matters.
+`markscript run` waits for the full lifetime, including async `onReady` callbacks.
+Then it writes the finalized document. The public formats are `markdown`, `mdast`, and `pretty`.
+Markdown is the default. The programmatic ABI uses `mdast.Root`.
+
+Keep stdout for document output. Use stderr for source logs for clean machine output.
 
 ## Diagnostics
 
-Each MarkScript diagnostic has exactly one human-readable source:
-`packages/manuals/manuals/diagnostics/<CODE>.ms`. Its minimum man-page shape is:
+Each MarkScript diagnostic has one source of human-readable text:
+`packages/manuals/manuals/diagnostics/<CODE>.ms`. Use this minimum man-page structure:
 
 ```markdown
 # ERR1234 — Short title
@@ -102,30 +99,67 @@ Any Markdown body: explanation, tutorial, examples, recovery steps, or other
 sections useful for this code.
 ```
 
-Diagnostic codes use `SYN####`, `ERR####`, or `SUG####`; tutorials use
-`TUT####`, and handbooks use `HBK####`. Every page filename and H1 share that
-identity. The build compiles the `.ms` files into an importable catalog beneath
-`packages/manuals/dist/` and parses their MDAST on module import. Only the
-identity H1 is structural; the remaining page is free-form and indexed into
-ordered content/sections. `Problem` and `Fix` are optional conventions. The
-`.ms` sources exclusively own human-readable diagnostic prose. Every emitted
-code must have a man page so
-`markscript help CODE`, CLI errors, and LSP `codeDescription` links remain
-exact.
+Diagnostic codes use `SYN####`, `ERR####`, or `SUG####`. Tutorials use `TUT####`.
+Handbooks use `HBK####`. Each filename and H1 must have the same identity.
+The build compiles the `.ms` files into an importable catalog under `packages/manuals/dist/`.
+The catalog parses the MDAST when a module imports it.
 
-Allocate numbers by subsystem: `1000–1099` frontend/parsing, `1100–1199`
-construction and annotations, `1200–1299` final document invariants,
-`1300–1399` lifetimes, `2000–2099` compilation/bundling, and `2100–2199`
-CLI/output behavior. Use `SUG` only for non-failing guidance. A new emitted
-code and its `.ms` page belong in the same change.
+Only the identity H1 has a required structure. The rest of the page can use any Markdown body.
+The catalog indexes its content and sections in order. `Problem` and `Fix` are optional section names.
+The `.ms` sources contain all human-readable diagnostic text.
+Each emitted code must have a man page for `markscript help CODE`, CLI errors, and LSP `codeDescription` links.
+
+Assign numbers by subsystem:
+
+- `1000–1099`: frontend and parser.
+- `1100–1199`: construction and annotations.
+- `1200–1299`: final document invariants.
+- `1300–1399`: lifetimes.
+- `2000–2099`: compilation and bundles.
+- `2100–2199`: CLI and output behavior.
+
+Use `SUG` only for guidance that does not report a failure.
+Add a new emitted code and its `.ms` page in the same change.
 
 ## Verification policy
 
-Prefer tests for semantic boundaries and costly regressions: static-only
-check/compile behavior, source mapping, imported `.ms` graphs, lifetime order
-and isolation, MDAST ownership/validation, diagnostic source integrity, and
-stale asynchronous LSP results. Tests should exercise behavior beyond trivial
-exports, static manifest fields, basic option parsing, and direct getters.
+Use tests for semantic boundaries and costly regressions:
+
+- Static behavior of `check` and `compile`.
+- Source maps and imported `.ms` graphs.
+- Lifetime order and isolation.
+- MDAST ownership and validation.
+- Diagnostic source integrity.
+- Stale asynchronous LSP results.
+
+Tests must verify behavior beyond simple exports, static manifest fields, basic option parsing, and direct getters.
+
+Write project documents in ASD-STE100 Simplified Technical English, Issue 9.
+Use approved vocabulary and consistent software technical nouns and verbs.
+
+Keep instructions within 20 words per sentence. Keep descriptions within 25 words per sentence.
+Use active voice and one topic per paragraph. Use a maximum of six sentences per paragraph.
+
+Keep API identifiers, paths, code, and diagnostic identities exact. Example projects keep their own language.
+
+Use these software technical terms with their defined project meanings:
+
+| Terms | Meaning |
+|---|---|
+| MDAST, AST, node, root, flow, phrasing | Document tree types and content contexts |
+| Intrinsic, component, directive, attacher, group | MarkScript source and construction forms |
+| Module, ESM, binding, export, input, schema | Module interfaces and typed data contracts |
+| Lifetime, callback, transform, ready, frozen root | Document execution phases and values |
+| Projection, source map, diagnostic, catalog | Compiler, editor, and manual data |
+| Context, generation, thread, ability, native tool | msh execution and model interfaces |
+| Parse, compile, transpile, bundle, render, serialize | Software conversion operations |
+| Import, export, call, invoke, return, await | Module and function execution operations |
+| Resolve, normalize, flatten, validate, dispatch | Software data and execution operations |
+| Inspect, report, define, support, enable, disable | Software API, diagnostic, and configuration operations |
+
+Use the last four rows as technical verbs only for the specified software operations.
+Use other terms as technical nouns. Keep software verbs in the simple tenses.
+API names and code examples use their exact source spelling.
 
 Useful commands:
 

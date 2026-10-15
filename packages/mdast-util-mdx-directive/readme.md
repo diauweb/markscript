@@ -1,16 +1,14 @@
 # @markscript/mdast-util-mdx-directive
 
-MarkScript fork of `mdast-util-directive@3.1.0`. It retains the upstream static
-`attributes` record and additionally preserves an ordered
-`directiveAttributes` list containing strings, flags, expressions, and spreads.
+This package is a MarkScript fork of `mdast-util-directive@3.1.0`.
+It keeps the upstream static `attributes` record.
+It also keeps an ordered `directiveAttributes` list with strings, flags, expressions, and spreads.
 
 ## Development
 
-Maintain source in `src/`. The public TypeScript entrypoint owns the exported
-types and module augmentations; `src/lib/` contains the annotated JavaScript
-implementation. The workspace build emits
-`dist/` JavaScript and `types/` declarations before building their consumers.
-Both output directories are ignored by Git.
+Maintain source in `src/`. The public TypeScript entrypoint defines exported types and module augmentations.
+`src/lib/` contains the annotated JavaScript implementation.
+The workspace build emits `dist/` JavaScript and `types/` declarations before consumer builds. Git ignores both output directories.
 
 From the repository root:
 
@@ -30,9 +28,8 @@ bun run check
 [![Backers][backers-badge]][collective]
 [![Chat][chat-badge]][chat]
 
-[mdast][] extensions to parse and serialize [generic directives proposal][prop]
-(`:cite[smith04]`, `::youtube[Video of a cat in a box]{v=01ab2cd3efg}`, and
-such).
+These [mdast][] extensions parse and serialize the [generic directives proposal][prop].
+Examples include `:cite[smith04]` and `::youtube[Video of a cat in a box]{v=01ab2cd3efg}`.
 
 ## Contents
 
@@ -61,63 +58,48 @@ such).
 
 ## What is this?
 
-This package contains two extensions that add support for directive syntax in
-markdown to [mdast][].
-These extensions plug into
-[`mdast-util-from-markdown`][mdast-util-from-markdown] (to support parsing
-directives in markdown into a syntax tree) and
-[`mdast-util-to-markdown`][mdast-util-to-markdown] (to support serializing
-directives in syntax trees to markdown).
+This package has two extensions for Markdown directive syntax in [mdast][].
+[`mdast-util-from-markdown`][mdast-util-from-markdown] uses the parser extension to convert directives to a syntax tree.
+[`mdast-util-to-markdown`][mdast-util-to-markdown] uses the serializer extension to convert directive nodes to Markdown.
 
 ## When to use this
 
-Directives are one of the four ways to extend markdown: an arbitrary extension
-syntax (see [Extending markdown][extending-markdown] in micromark’s docs for
-the alternatives and more info).
-This mechanism works well when you control the content: who authors it, what
-tools handle it, and where it’s displayed.
-When authors can read a guide on how to embed a tweet but are not expected to
-know the ins and outs of HTML or JavaScript.
-Directives don’t work well if you don’t know who authors content, what tools
-handle it, and where it ends up.
-Example use cases are a docs website for a project or product, or blogging tools
-and static site generators.
+Directives are one of four Markdown extension mechanisms.
+Refer to [Extending markdown][extending-markdown] in micromark documentation for alternatives.
+Use directives when you control authors, processing tools, and display destinations.
+Authors can use a guide to embed a tweet without detailed HTML or JavaScript knowledge.
 
-You can use these extensions when you are working with
-`mdast-util-from-markdown` and `mdast-util-to-markdown` already.
+Directives are less suitable when authors, tools, or destinations are unknown.
+Use cases include project or product documentation sites, blog tools, and static site generators.
 
-When working with `mdast-util-from-markdown`, you must combine this package
-with [`micromark-extension-directive`][extension].
+Use these extensions with `mdast-util-from-markdown` and `mdast-util-to-markdown`.
 
-When you don’t need a syntax tree, you can use [`micromark`][micromark]
-directly with `micromark-extension-directive`.
+With `mdast-util-from-markdown`, combine this package with [`micromark-extension-directive`][extension].
 
-All these packages are used [`remark-directive`][remark-directive], which
-focusses on making it easier to transform content by abstracting these
-internals away.
+Without a syntax tree requirement, use [`micromark`][micromark] directly with `micromark-extension-directive`.
 
-This package only handles the syntax tree.
-For example, it does not handle how markdown is turned to HTML.
-You can use this with some more code to match your specific needs, to allow for
-anything from callouts, citations, styled blocks, forms, embeds, spoilers, etc.
-[Traverse the tree][traversal] to change directives to whatever you please.
+[`remark-directive`][remark-directive] uses these packages. It hides their internal integration to make content transforms easier.
+
+This package processes the syntax tree. Other code defines Markdown-to-HTML conversion and application behavior.
+Use it for callouts, citations, styled blocks, forms, embeds, spoilers, or other features.
+[Traverse the tree][traversal] to convert directives to the required structures.
 
 ## Install
 
-This package is [ESM only][esm].
-In Node.js (version 16+), install with [npm][]:
+This package uses [ESM only][esm].
+In Node.js 16 or later, install it with [npm][]:
 
 ```sh
 npm install @markscript/mdast-util-mdx-directive
 ```
 
-In Deno with [`esm.sh`][esmsh]:
+In Deno, use [`esm.sh`][esmsh]:
 
 ```js
 import {directiveFromMarkdown, directiveToMarkdown} from 'https://esm.sh/@markscript/mdast-util-mdx-directive@0.1'
 ```
 
-In browsers with [`esm.sh`][esmsh]:
+In browsers, use [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
@@ -127,13 +109,13 @@ In browsers with [`esm.sh`][esmsh]:
 
 ## Use
 
-Say our document `example.md` contains:
+Create `example.md` with this content:
 
 ```markdown
 A lovely language know as :abbr[HTML]{title="HyperText Markup Language"}.
 ```
 
-…and our module `example.js` looks as follows:
+Create `example.js` with this content:
 
 ```js
 import fs from 'node:fs/promises'
@@ -156,7 +138,7 @@ const out = toMarkdown(tree, {extensions: [directiveToMarkdown()]})
 console.log(out)
 ```
 
-…now running `node example.js` yields (positional info removed for brevity):
+Run `node example.js`. The output below omits position information:
 
 ```js
 {
@@ -185,15 +167,12 @@ A lovely language know as :abbr[HTML]{title="HyperText Markup Language"}.
 
 ## API
 
-This package exports the identifiers
-[`directiveFromMarkdown`][api-directive-from-markdown] and
-[`directiveToMarkdown`][api-directive-to-markdown].
-There is no default export.
+This package exports [`directiveFromMarkdown`][api-directive-from-markdown] and [`directiveToMarkdown`][api-directive-to-markdown].
+It has no default export.
 
 ### `directiveFromMarkdown()`
 
-Create an extension for [`mdast-util-from-markdown`][mdast-util-from-markdown]
-to enable directives in markdown.
+Creates a [`mdast-util-from-markdown`][mdast-util-from-markdown] extension for Markdown directives.
 
 ###### Returns
 
@@ -202,8 +181,7 @@ Extension for `mdast-util-from-markdown` to enable directives
 
 ### `directiveToMarkdown(options?)`
 
-Create an extension for [`mdast-util-to-markdown`][mdast-util-to-markdown]
-to enable directives in markdown.
+Creates a [`mdast-util-to-markdown`][mdast-util-to-markdown] extension for Markdown directives.
 
 ###### Parameters
 
@@ -218,8 +196,8 @@ Extension for `mdast-util-to-markdown` to enable directives
 
 ### `ContainerDirective`
 
-Directive in flow content (such as in the root document, or block quotes),
-which contains further flow content (TypeScript type).
+This TypeScript type describes a directive in flow content, such as a root document or blockquote.
+The directive contains additional flow content.
 
 ###### Type
 
@@ -236,7 +214,7 @@ interface ContainerDirective extends Parent {
 
 ### `Directives`
 
-The different directive nodes (TypeScript type).
+This TypeScript type describes the different directive nodes.
 
 ###### Type
 
@@ -246,8 +224,8 @@ type Directives = ContainerDirective | LeafDirective | TextDirective
 
 ### `LeafDirective`
 
-Directive in flow content (such as in the root document, or block quotes),
-which contains nothing (TypeScript type).
+This TypeScript type describes a directive in flow content, such as a root document or blockquote.
+The directive contains no content.
 
 ###### Type
 
@@ -264,8 +242,7 @@ interface LeafDirective extends Parent {
 
 ### `TextDirective`
 
-Directive in phrasing content (such as in paragraphs, headings) (TypeScript
-type).
+This TypeScript type describes a directive in phrasing content, such as a paragraph or heading.
 
 ###### Type
 
@@ -286,37 +263,26 @@ Configuration.
 
 ###### Parameters
 
-* `collapseEmptyAttributes`
-  (`boolean`, default: `true`)
-  — collapse empty attributes: get `title` instead of `title=""`
-* `preferShortcut`
-  (`boolean`, default: `true`)
-  — prefer `#` and `.` shortcuts for `id` and `class`
-* `preferUnquoted`
-  (`boolean`, default: `false`)
-  — leave attributes unquoted if that results in less bytes
-* `quoteSmart`
-  (`boolean`, default: `false`)
-  — use the other quote if that results in less bytes
-* `quote`
-  (`'"'` or `"'"`,
-  default: the [`quote`][quote] used by `mdast-util-to-markdown` for titles)
-  — preferred quote to use around attribute values
+* `collapseEmptyAttributes` (`boolean`, default: `true`): Collapse empty attributes to `title` instead of `title=""`.
+* `preferShortcut` (`boolean`, default: `true`): Use `#` and `.` shortcuts for `id` and `class`.
+* `preferUnquoted` (`boolean`, default: `false`): Omit attribute quotes when this makes fewer bytes.
+* `quoteSmart` (`boolean`, default: `false`): Use the other quote character when this makes fewer bytes.
+* `quote` (`'"'` or `"'"`): Quote character for attribute values.
+  The default is the [`quote`][quote] that `mdast-util-to-markdown` uses for titles.
 
 ## HTML
 
-This utility does not handle how markdown is turned to HTML.
-You can use this with some more code to match your specific needs, to allow for
-anything from callouts, citations, styled blocks, forms, embeds, spoilers, etc.
-[Traverse the tree][traversal] to change directives to whatever you please.
+Other code defines Markdown-to-HTML conversion and application behavior.
+Use this utility for callouts, citations, styled blocks, forms, embeds, spoilers, or other features.
+[Traverse the tree][traversal] to convert directives to the required structures.
 
 ## Syntax
 
-See [Syntax in `micromark-extension-directive`][syntax].
+Refer to [Syntax in `micromark-extension-directive`][syntax].
 
 ## Syntax tree
 
-The following interfaces are added to **[mdast][]** by this utility.
+This utility adds these interfaces to **[mdast][]**.
 
 ### Nodes
 
@@ -331,18 +297,17 @@ interface TextDirective <: Parent {
 TextDirective includes Directive
 ```
 
-**TextDirective** (**[Parent][dfn-parent]**) is a directive.
-It can be used where **[phrasing][dfn-phrasing-content]** content is expected.
-Its content model is also **[phrasing][dfn-phrasing-content]** content.
-It includes the mixin **[Directive][dfn-mxn-directive]**.
+**TextDirective** (**[Parent][dfn-parent]**) is a directive in **[phrasing][dfn-phrasing-content]** content.
+Its content model is also **[phrasing][dfn-phrasing-content]**.
+It includes the **[Directive][dfn-mxn-directive]** mixin.
 
-For example, the following Markdown:
+This Markdown:
 
 ```markdown
 :name[Label]{#x.y.z key=value}
 ```
 
-Yields:
+Makes:
 
 ```js
 {
@@ -364,18 +329,17 @@ interface LeafDirective <: Parent {
 LeafDirective includes Directive
 ```
 
-**LeafDirective** (**[Parent][dfn-parent]**) is a directive.
-It can be used where **[flow][dfn-flow-content]** content is expected.
-Its content model is **[phrasing][dfn-phrasing-content]** content.
-It includes the mixin **[Directive][dfn-mxn-directive]**.
+**LeafDirective** (**[Parent][dfn-parent]**) is a directive in **[flow][dfn-flow-content]** content.
+Its content model is **[phrasing][dfn-phrasing-content]**.
+It includes the **[Directive][dfn-mxn-directive]** mixin.
 
-For example, the following Markdown:
+This Markdown:
 
 ```markdown
 ::youtube[Label]{v=123}
 ```
 
-Yields:
+Makes:
 
 ```js
 {
@@ -397,15 +361,14 @@ interface ContainerDirective <: Parent {
 ContainerDirective includes Directive
 ```
 
-**ContainerDirective** (**[Parent][dfn-parent]**) is a directive.
-It can be used where **[flow][dfn-flow-content]** content is expected.
-Its content model is also **[flow][dfn-flow-content]** content.
-It includes the mixin **[Directive][dfn-mxn-directive]**.
+**ContainerDirective** (**[Parent][dfn-parent]**) is a directive in **[flow][dfn-flow-content]** content.
+Its content model is also **[flow][dfn-flow-content]**.
+It includes the **[Directive][dfn-mxn-directive]** mixin.
 
-The phrasing in the label is, when available, added as a paragraph with a
-`directiveLabel: true` field, as the head of its content.
+If a label contains phrasing content, the utility inserts it as the first paragraph.
+That paragraph has `directiveLabel: true`.
 
-For example, the following Markdown:
+This Markdown:
 
 ```markdown
 :::spoiler[Open at your own peril]
@@ -413,7 +376,7 @@ He dies.
 :::
 ```
 
-Yields:
+Makes:
 
 ```js
 {
@@ -449,32 +412,25 @@ typedef string AttributeName
 typedef string AttributeValue
 ```
 
-**Directive** represents something defined by an extension.
+**Directive** represents a construct that an extension defines.
 
-The `name` field must be present and represents an identifier of an extension.
+The required `name` field identifies an extension.
 
-The `attributes` field represents information associated with the node.
-The value of the `attributes` field implements the **Attributes** interface.
+The `attributes` field contains node information. Its value implements the **Attributes** interface.
 
-In the **Attributes** interface, every field must be an `AttributeName` and
-every value an `AttributeValue`.
-The fields and values can be anything: there are no semantics (such as by HTML
-or hast).
+In **Attributes**, each field must be an `AttributeName`. Each value must be an `AttributeValue`.
+Fields and values have no fixed HTML or hast semantics.
 
-> In JSON, the value `null` must be treated as if the attribute was not
-> included.
-> In JavaScript, both `null` and `undefined` must be similarly ignored.
+> In JSON, treat `null` as an absent attribute.
+> In JavaScript, ignore both `null` and `undefined`.
 
 ## Types
 
-This package is fully typed with [TypeScript][].
-It exports the additional types [`ContainerDirective`][api-container-directive],
-[`Directives`][api-directives], [`LeafDirective`][api-leaf-directive], and
-[`TextDirective`][api-text-directive].
+This package gives full [TypeScript][] types.
+Additional exports include [`ContainerDirective`][api-container-directive], [`Directives`][api-directives], [`LeafDirective`][api-leaf-directive], and [`TextDirective`][api-text-directive].
 
-It also registers the node types with `@types/mdast`.
-If you’re working with the syntax tree, make sure to import this utility
-somewhere in your types, as that registers the new node types in the tree.
+The package registers node types with `@types/mdast`.
+For syntax tree work, import the utility in your types to register the new node types.
 
 ```js
 /**
@@ -494,13 +450,10 @@ visit(tree, function (node) {
 
 ## Compatibility
 
-Projects maintained by the unified collective are compatible with maintained
-versions of Node.js.
+The unified collective maintains compatibility with supported Node.js versions.
 
-When we cut a new major release, we drop support for unmaintained versions of
-Node.
-This means we try to keep the current release line, `mdast-util-directive@^3`,
-compatible with Node.js 16.
+New major releases remove support for unmaintained Node.js versions.
+The `mdast-util-directive@^3` release line targets Node.js 16 compatibility.
 
 This utility works with `mdast-util-from-markdown` version 2+ and
 `mdast-util-to-markdown` version 2+.
@@ -514,13 +467,11 @@ This utility works with `mdast-util-from-markdown` version 2+ and
 
 ## Contribute
 
-See [`contributing.md`][contributing] in [`syntax-tree/.github`][health] for
-ways to get started.
-See [`support.md`][support] for ways to get help.
+Refer to [`contributing.md`][contributing] in [`syntax-tree/.github`][health] for contribution instructions.
+Refer to [`support.md`][support] for help.
 
 This project has a [code of conduct][coc].
-By interacting with this repository, organization, or community you agree to
-abide by its terms.
+Interaction with the repository, organization, or community indicates agreement to its terms.
 
 ## License
 

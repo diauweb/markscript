@@ -1,12 +1,11 @@
 # HBK1003 — Compiler, module graph, and callable ESM ABI
 
-Unified and remark parse MarkScript's Markdown/MDX-shaped syntax, a
-TypeScript-capable Acorn adapter accepts embedded TS/TSX regions, TypeScript
-checks and transpiles the generated virtual module, and Bun bundles file-backed
-module graphs into callable ESM. Compilation stops before document rendering.
+Unified and remark parse MarkScript Markdown and MDX syntax. An Acorn adapter with TypeScript support accepts embedded TS/TSX regions.
+TypeScript checks and transpiles the generated virtual module. Bun bundles filesystem module graphs into callable ESM.
+Compilation completes before document rendering.
 
-The implementation is in `packages/compiler/src/`. Public compiler exports are
-re-exported by `@markscript/markscript` for application use.
+The implementation is in `packages/compiler/src/`.
+`@markscript/markscript` reexports the public compiler API for applications.
 
 ## Compilation stages
 
@@ -33,6 +32,59 @@ call default entry
   -> ready callbacks
   -> Promise<mdast.Root>
 ```
+
+## Documenting module exports
+
+Start a top-level module block with a TSDoc/JSDoc comment followed by the
+documented export:
+
+```ms
+/**
+ * Format a report title.
+ * @param title - The title to format.
+ */
+export function formatTitle(title: string): string {
+  return title.trim()
+}
+
+# {formatTitle('Report')}
+```
+
+The comment and export form one module block. The formatter keeps documentation. The editor uses it for hover and signature help.
+Imports can also have preceding documentation. Each comment starts at column one.
+Blank lines can separate it from the next import or export.
+
+## Document input
+
+To give a document an input parameter, declare a directly exported `Input` interface or type alias.
+The document body receives a local `input` binding:
+
+```ms
+export interface Input {
+  title: string
+}
+
+export function formatTitle(data: Input) {
+  return data.title.toUpperCase()
+}
+
+# {formatTitle(input)}
+```
+
+```ts
+import report from './report.ms'
+
+const root = await report({title: 'Annual report'})
+```
+
+Each call captures its own input in document expressions and lifetime callbacks.
+Exported helpers receive input through explicit parameters or factory closures.
+Use a concrete type. To expose a shared type, use `export type Input = ReportInput`.
+Files without an input declaration have an entry without parameters. Imported entries expose their parameter types to checks and editors.
+
+Pass data with `runFile('report.ms', {input: {title: 'Annual report'}})`.
+Alternatively, give JSON with `markscript run report.ms --input report-input.json`.
+The file-based API accepts unknown data. The CLI parses JSON. Documents do their own necessary runtime structure validation.
 
 ## Programmatic API
 
@@ -62,8 +114,8 @@ compile(source: string | Uint8Array, options?: CompilerOptions)
   : Promise<CompilationResult>
 ```
 
-`filename` defaults to a resolved `document.ms` and should be supplied whenever
-relative imports, project discovery, or useful source locations matter.
+`filename` defaults to a resolved `document.ms`.
+Give it for relative imports, project discovery, or useful source locations.
 
 The file-oriented forms resolve and read the path themselves:
 
@@ -98,19 +150,15 @@ interface Diagnostic {
 }
 ```
 
-Codes emitted by MarkScript use `SYN####`, `ERR####`, or `SUG####`. TypeScript
-codes retain their compiler identity as `TS####`. Locations are one-based
-UTF-16 source coordinates and are mapped back from generated TSX to the
-original `.ms` source. `formatDiagnostic` creates the concise CLI-style string,
-and `hasErrors` checks whether any diagnostic has error severity.
+MarkScript codes use `SYN####`, `ERR####`, or `SUG####`. TypeScript codes keep their `TS####` identity.
+Locations use one-based UTF-16 coordinates. The compiler maps them from generated TSX to original `.ms` source.
+`formatDiagnostic` creates the short CLI string. `hasErrors` checks for any diagnostic with error severity.
 
-Frontend errors that prevent module generation produce an empty `code` string.
-The single-module `compile` API can still return transpiled code alongside
-semantic TypeScript errors, so callers must inspect `diagnostics` or call
-`hasErrors` before using an artifact. `bundleFile` with checking enabled
-withholds its bundle when checking reports an error. `MarkScriptCompilationError`
-wraps a run failure caused by compilation and exposes the original structured
-`diagnostics` array.
+Frontend errors that prevent module generation make an empty `code` string.
+Single-module `compile` can return transpiled code with semantic TypeScript errors.
+Before artifact use, examine `diagnostics` or call `hasErrors`.
+With checking enabled, `bundleFile` emits no bundle if checks report an error.
+`MarkScriptCompilationError` contains a compilation-related run failure and the original structured `diagnostics` array.
 
 ## Compiler options
 
@@ -131,48 +179,45 @@ interface RunOptions extends CompilerOptions {
 
 | Option | Contract |
 |---|---|
-| `filename` | Logical or filesystem source path used for diagnostics, imports, and config discovery |
+| `filename` | Logical or filesystem path for diagnostics, imports, and configuration discovery |
 | `compilerOptions` | Programmatic TypeScript option overrides |
-| `tsconfig` | Explicit config file/directory; `false` disables discovery; omitted finds the nearest config |
-| `sourceOverrides` | Unsaved `.ms` text keyed by source path for editor hosts |
-| `sourceMap` | Request a map composed back to `.ms` positions |
-| `typeCheck` | For compile/bundle, set false to skip semantic checking |
-| `check` | For run, set false to skip the pre-execution check |
+| `tsconfig` | Explicit file or directory. `false` disables discovery. Omission selects the nearest configuration |
+| `sourceOverrides` | Unsaved `.ms` text with source paths as keys for editor hosts |
+| `sourceMap` | Map to `.ms` positions |
+| `typeCheck` | `false` omits semantic checks for compile or bundle |
+| `check` | `false` omits the check before run |
 
-`check` always performs TypeScript analysis. The `typeCheck` option applies to
-compile and bundle operations; `false` enables their transpile-first workflow.
+`check` always does TypeScript analysis. `typeCheck` applies to compile and bundle operations.
+Set it to `false` for a workflow that transpiles first.
 
 ## TypeScript configuration
 
-With no explicit setting, the checker searches upward from the `.ms` file for
-the nearest `tsconfig.json`. Passing a directory uses its `tsconfig.json`;
-passing a file uses that file; passing `false` selects the standalone profile.
+Without an explicit setting, the checker searches parent directories from the `.ms` file for the nearest `tsconfig.json`.
+A directory path selects its `tsconfig.json`. A file path selects that file.
+`false` selects the standalone profile.
 
-The standalone profile is strict, targets ES2022, uses ESM with bundler module
-resolution, enables the Bun type environment, and configures
-`@markscript/runtime` as the JSX import source.
+The standalone profile uses strict checks, ES2022, and ESM with bundler module resolution.
+It includes Bun types and uses `@markscript/runtime` as the JSX import source.
 
-Project options and explicit `compilerOptions` apply. The compiler fixes the
-following options to preserve consistent `.ms` semantics:
+Project options and explicit `compilerOptions` apply. The compiler fixes these options for consistent `.ms` semantics:
 
-- ESM and bundler module resolution;
-- forced module detection;
-- TSX emission through `@markscript/runtime`;
-- TypeScript extension imports;
-- verbatim module syntax;
-- checking emits no files;
-- checking disables language-service plugins.
+- ESM and bundler module resolution.
+- Forced module detection.
+- TSX emission through `@markscript/runtime`.
+- TypeScript extension imports.
+- Verbatim module syntax.
+- No file emission during checks.
+- No language-service plugins during checks.
 
-For a file-oriented check, project declaration files are added as ambient
-roots. The checker excludes unrelated implementation files that appear only in
-the project file list. It filters the inapplicable TypeScript no-input
-diagnostic for a `.ms`-only project and reports all other config errors.
+For file-oriented checks, project declaration files become ambient roots.
+The checker excludes unrelated implementation files from the project file list.
+It omits the inapplicable TypeScript no-input diagnostic for a `.ms`-only project. It reports all other configuration errors.
 
 ## Recursive `.ms` checking
 
-The virtual compiler host recognizes explicit relative imports ending in
-`.ms`, recursively parses and generates them, and caches each module after its
-first visit. Cyclic imports therefore terminate without repeated generation.
+The virtual compiler host recognizes explicit relative imports that end in `.ms`.
+It recursively parses and generates them. It caches each module after the first visit.
+Cyclic imports thus terminate without repeated generation.
 
 ```mdx
 import {Section} from './section.ms'
@@ -182,28 +227,22 @@ import {Section} from './section.ms'
 <Section />
 ```
 
-Diagnostics from an imported source retain that source's filename and
-coordinates, so editor clients publish the error on the source document.
+Imported source diagnostics keep their source filename and coordinates. Editor clients can thus publish errors on the source document.
 
-`sourceOverrides` lets a language server supply in-memory text for any open
-file in this graph. TypeScript/JavaScript and package imports continue through
-TypeScript's normal resolver.
+`sourceOverrides` lets a language server give in-memory text for any open file in the graph.
+TypeScript, JavaScript, and package imports use TypeScript's standard resolver.
 
 ## Frontend generation
 
-`parseMarkscript` in `packages/compiler/src/parser.ts` uses `remark-parse` and
-`remark-mdx` with the Svelte Acorn TypeScript plugin. It normalizes standalone
-flow JSX and the special `<pre><code>` shape that upstream MDX otherwise wraps
-as a paragraph.
+`parseMarkscript` in `packages/compiler/src/parser.ts` uses `remark-parse` and `remark-mdx` with the Svelte Acorn TypeScript plugin.
+It normalizes standalone flow JSX and `<pre><code>`. Upstream MDX otherwise puts that structure in a paragraph.
 
-`generateModule` in `packages/compiler/src/generate.ts` performs two distinct
-jobs:
+`generateModule` in `packages/compiler/src/generate.ts` has two functions:
 
-1. validate source-visible Markdown/JSX contexts and attributes early;
-2. emit a virtual TSX module that delegates construction and lifetime handling
-   to `@markscript/runtime`.
+1. Validate source-visible Markdown and JSX contexts and attributes early.
+2. Emit a virtual TSX module that delegates construction and lifetime management to `@markscript/runtime`.
 
-Its generated shape is conceptually:
+The generated module has this structure:
 
 ```ts
 import {executeDocument} from '@markscript/runtime'
@@ -224,11 +263,10 @@ async function documentEntry() {
 export default documentEntry
 ```
 
-Generated internal identifiers include a source-derived suffix to avoid
-colliding with author bindings. Copied TypeScript regions and generated JSX
-calls carry source-span mappings used by checking and source-map composition.
-Document expressions and JSX attribute expressions are awaited inside
-`renderDocument`; module-scope imports and exports remain unchanged.
+Generated internal identifiers have a suffix from the source to prevent collisions with author bindings.
+Copied TypeScript regions and generated JSX calls have source-span maps for checks and source-map composition.
+`renderDocument` waits for document expressions and JSX attribute expressions.
+Module-scope imports and exports stay unchanged.
 
 ## Callable module ABI
 
@@ -268,29 +306,26 @@ console.log(formatTitle('report'))
 const root = await runReport()
 ```
 
-Importing evaluates ESM dependencies and exported initializers. Calling the
-default export starts rendering. Tools can inspect named exports after import
-and control when document rendering begins.
+An import evaluates ESM dependencies and exported initializers. A call to the default export starts rendering.
+Tools can examine named exports after import and control when rendering starts.
 
-MarkScript rejects module-scope `await`. Named exports may define async
-functions, and document expressions implicitly await promises returned by
-those functions.
+MarkScript rejects module-scope `await`. Named exports can define async functions.
+Document expressions implicitly wait for promises from those functions.
 
 ## Single-module compile versus graph bundle
 
-`compile` and `compileFile` transpile one generated module and preserve its
-imports. They are useful for loaders or hosts that resolve imports themselves.
+`compile` and `compileFile` transpile one generated module and keep its imports.
+Use them for loaders or hosts with their own import resolution.
 
 `bundleFile` handles a file-backed graph:
 
-- it type-checks the reachable relative `.ms` graph first unless disabled;
-- it asks Bun to bundle relative `.ms`, `.ts`, and other source modules;
-- its internal `.ms` loader compiles every document without evaluating it;
-- package imports remain external ESM imports;
-- environment-variable substitution is disabled in the build;
-- the output is one callable ESM entry targeted at portable Node-style ESM;
-- build diagnostics and the optional bundle map are composed back through
-  each `.ms` module's generated map.
+- It checks types in the reachable relative `.ms` graph first, unless disabled.
+- It asks Bun to bundle relative `.ms`, `.ts`, and other source modules.
+- Its `.ms` loader compiles each document without evaluation.
+- Package imports stay external ESM imports.
+- The build disables environment-variable substitution.
+- Output is one callable ESM entry for portable Node-style ESM.
+- Build diagnostics and the optional bundle map use each `.ms` module's generated map to identify original source.
 
 The CLI `compile` command uses `bundleFile`.
 
@@ -298,19 +333,15 @@ The CLI `compile` command uses `bundleFile`.
 
 There are two mapping stages.
 
-1. The frontend records identity spans from copied TS/TSX regions in the
-   virtual module back to `.ms` offsets.
-2. TypeScript and Bun maps are composed through those spans so final positions
-   point at `.ms` source.
+1. The frontend records identity spans from copied TS/TSX regions in the virtual module to `.ms` offsets.
+2. TypeScript and Bun maps use those spans to point final positions to `.ms` source.
 
-`packages/compiler/src/source-mapping.ts` maps TypeScript diagnostics and
-single-module output. `packages/compiler/src/bundle.ts` composes Bun's bundle
-map through every compiled `.ms` map and maps Bun resolution/build messages
-back when possible.
+`packages/compiler/src/source-mapping.ts` maps TypeScript diagnostics and single-module output.
+`packages/compiler/src/bundle.ts` composes Bun's bundle map through each compiled `.ms` map.
+It also maps Bun resolution and build messages where possible.
 
-Consumers receive the source map as a JSON string in `CompilationResult.map`.
-The CLI writes it beside the output and appends the appropriate
-`sourceMappingURL` comment.
+Consumers receive a JSON source-map string in `CompilationResult.map`.
+The CLI writes it beside the output and appends the applicable `sourceMappingURL` comment.
 
 ## Compilation and execution
 
@@ -321,14 +352,11 @@ The CLI writes it beside the output and appends the appropriate
 | `bundleFile` | yes unless disabled | yes | no | no |
 | `runFile` / `run` | yes unless disabled | loader compiles on demand | yes | yes |
 
-`check`, `checkFile`, `compile`, `compileFile`, and `bundleFile` parse, check,
-transpile, or bundle source without importing modules or calling document
-entries. `runFile` is trusted code execution: it installs the Bun `.ms` loader,
-dynamically imports the entry, checks that the default export is callable,
-invokes it, and resolves the finalized root.
+`check`, `checkFile`, `compile`, `compileFile`, and `bundleFile` process source without module imports or document entry calls.
+`runFile` executes trusted code. It installs the Bun `.ms` loader and dynamically imports the entry.
+It checks that the default export is callable. Then it calls the entry and resolves the finalized root.
 
-With checking disabled, `runFile` remains trusted code execution and runtime
-MDAST validation remains enabled.
+With checks disabled, `runFile` still executes trusted code and validates runtime MDAST.
 
 ## Implementation references
 
@@ -344,4 +372,4 @@ MDAST validation remains enabled.
 | Offset/map composition | `packages/compiler/src/source-mapping.ts` |
 | Public types | `packages/compiler/src/types.ts` |
 
-Compilation produces a module. An explicit run or entry call executes it.
+Compilation makes a module. An explicit run or entry call executes it.

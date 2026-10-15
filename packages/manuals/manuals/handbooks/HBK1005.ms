@@ -1,18 +1,15 @@
 # HBK1005 — Diagnostics and manual authoring
 
-Human-readable `.ms` pages are the canonical MarkScript manual sources. The
-manuals build compiles them with the normal MarkScript toolchain, executes
-their document entries during the trusted repository build, and indexes the
-resulting MDAST.
+Human-readable `.ms` pages are the MarkScript manual sources.
+The build compiles them with the standard MarkScript tools.
+It executes their document entries as trusted repository code and indexes the resulting MDAST.
 
-Readers, editors, the CLI, and agents use the same material. Markdown contains
-the prose, and MDAST provides its structured representation.
+Readers, editors, the CLI, and agents use the same content. Markdown contains text. MDAST gives its structured representation.
 
-Manual sources are stored under `packages/manuals/manuals/`. The build and
-parser are implemented by `packages/manuals/scripts/build.ts` and
-`packages/manuals/src/core.ts`. The `.ms` files are the only authored,
-human-readable copies. The build emits importable JavaScript to the package
-`dist/` directory.
+Manual sources are under `packages/manuals/manuals/`.
+`packages/manuals/scripts/build.ts` and `packages/manuals/src/core.ts` implement the build and parser.
+The `.ms` files are the only authored human-readable copies.
+The build emits importable JavaScript into the package's `dist/` directory.
 
 ## Manual categories
 
@@ -22,8 +19,8 @@ human-readable copies. The build emits importable JavaScript to the package
 | Handbooks | `packages/manuals/manuals/handbooks/HBK####.ms` | Stable, detailed reference by concern |
 | Tutorials | `packages/manuals/manuals/tutorials/TUT####.ms` | Goal-oriented, end-to-end learning material |
 
-Use one document for one subject. Create a separate page when the material
-needs a distinct selector or serves a distinct reader task.
+Use one document for one subject.
+Create a separate page for a different selector or reader task.
 
 ## Selectors and indexes
 
@@ -31,20 +28,18 @@ The catalog gives every page and virtual index a stable selector.
 
 | Manual | Selector |
 |---|---|
-| Root index | empty string; shown by `markscript help` |
+| Root index | Empty string (shown by `markscript help`) |
 | Category index | `diagnostics`, `tutorials`, or `handbooks` |
-| Diagnostic page | its code, such as `ERR1104` |
-| Tutorial page | its code, such as `TUT1001` |
-| Handbook page | its code, such as `HBK1003` |
+| Diagnostic page | Its code, such as `ERR1104` |
+| Tutorial page | Its code, such as `TUT1001` |
+| Handbook page | Its code, such as `HBK1003` |
 
-Selectors are normalized to uppercase for lookup. Links and authored
-references use the canonical uppercase code.
+The catalog converts selectors to uppercase for lookup. Links and authored references use the uppercase code.
 
 ## Page identity
 
-Every page has exactly one source file. Its filename is the canonical uppercase
-code, and its first node is an H1 containing the same code, an em dash, and a
-short title.
+Each page has exactly one source file. Its filename is the uppercase code.
+Its first node is an H1 with that code, an em dash, and a short title.
 
 ```markdown
 # ERR1234 — Short title
@@ -52,24 +47,22 @@ short title.
 Any useful Markdown follows.
 ```
 
-The identity H1 is the only required content structure. Everything after it is
-free-form. A body may contain:
+The identity H1 is the only required structure. The body can contain:
 
-- a one-paragraph explanation;
-- a troubleshooting decision tree;
-- a tutorial;
-- multiple valid and invalid examples;
-- recovery or migration steps for external user data;
-- implementation notes and source links;
-- domain-specific sections.
+- An explanation in one paragraph.
+- A troubleshooting decision tree.
+- A tutorial.
+- Multiple valid and invalid examples.
+- Recovery or migration procedures for external user data.
+- Implementation notes and source links.
+- Domain-specific sections.
 
-`Problem` and `Fix` are optional conventions for compact error pages. Choose
-section names that fit the subject.
+`Problem` and `Fix` are optional names for short error page sections.
+Select section names for the subject.
 
 ## Code prefixes and allocation
 
-Canonical manual codes use a three-letter prefix followed by exactly four
-digits.
+Authoritative manual codes have a three-letter prefix and exactly four digits.
 
 | Prefix | Meaning |
 |---|---|
@@ -90,33 +83,30 @@ Allocate error numbers by subsystem:
 | 2000–2099 | Compilation and bundling |
 | 2100–2199 | CLI and output presentation |
 
-Choose the code from the subsystem that detects and explains the failure. A
-TypeScript compiler diagnostic retains its `TS####` code and stays outside the
-MarkScript diagnostic code ranges.
+Select a code from the subsystem that detects and explains the failure.
+TypeScript diagnostics keep their `TS####` codes outside MarkScript code ranges.
 
-An unshipped code has one canonical identity and no aliases, deprecation
-records, migration maps, or compatibility lookup paths.
+An unshipped code has one identity. Use it directly without aliases, deprecation records, migration maps, or compatibility lookup paths.
 
-Allocate tutorial and handbook numbers in reading order, starting at 1001.
-Keep established numbers stable when adding or reorganizing prose.
+Assign tutorial and handbook numbers in reading order, from 1001.
+Keep existing numbers when you add or change text.
 
 ## Diagnostic page content
 
-Start with the emitted code, the failed rule, and the phase that detected it.
-Provide enough context for the reader to select a correction directly from the
-manual.
+Start with the emitted code, failed rule, and detection phase.
+Give sufficient context for the reader to select a correction directly from the manual.
 
-A diagnostic page should answer the applicable questions:
+A diagnostic page must answer the applicable questions:
 
-1. What invariant was violated?
-2. At which phase was it detected?
-3. Did checking, compilation, or execution occur?
-4. What source or MDAST shapes commonly produce it?
-5. What evidence in the emitted message or path narrows the case?
-6. What changes preserve the intended document semantics?
-7. Which nearby APIs or source files define the rule?
+1. Which invariant failed?
+2. Which phase detected it?
+3. Did checks, compilation, or execution occur?
+4. Which source or MDAST structures commonly cause it?
+5. Which message or path evidence identifies the cause?
+6. Which changes keep the intended document semantics?
+7. Which APIs or source files define the rule?
 
-Choose section names that describe the content. For example:
+Select section names that describe the content. For example:
 
 ````markdown
 # ERR1234 — A transform reused one node in two locations
@@ -143,10 +133,10 @@ before inserting it.
 
 ## Exact messages and manual prose
 
-Runtime and compiler code contains the concise emitted message. The `.ms` page
-contains the explanation, examples, investigation steps, and recovery guidance.
-Keep that explanatory prose in the manual page. TypeScript constants contain
-concise emitted messages, and generator logic compiles and indexes the pages.
+Runtime and compiler code contains the short emitted message.
+The `.ms` page contains explanations, examples, investigation procedures, and recovery guidance.
+Keep explanations in the manual page. TypeScript constants contain short emitted messages.
+Generator logic compiles and indexes pages.
 
 Store the information as follows:
 
@@ -158,31 +148,27 @@ manual page
   -> concepts, examples, investigation, recovery, related rules
 ```
 
-The CLI prints the exact message first, followed by `markscript help CODE` and
-the individual document URL. The language server preserves the exact code and
-adds that URL as LSP `codeDescription`. Both interfaces refer to the same
-manual page.
+The CLI prints the exact message, then `markscript help CODE` and the document URL.
+The language server keeps the exact code and adds the URL as LSP `codeDescription`.
+Both interfaces refer to the same page.
 
 ## Adding a new diagnostic
 
 Update the emitter and its manual in the same change.
 
-1. Confirm that the condition is a MarkScript failure that needs a stable code.
-   Reuse an existing code for the same condition. Propagated TypeScript and
-   user-library exceptions retain their original identities.
-2. Choose an unused number in the detecting subsystem's range.
-3. Add `packages/manuals/manuals/diagnostics/CODE.ms` with the exact identity
-   H1 and a body appropriate to the failure.
-4. Emit that exact code from the detecting package and attach the most precise
-   filename, source position, MDAST path, and cause available.
-5. Update the design document if the failure reflects a new or changed
-   language contract.
-6. Run the manuals build so the importable catalog matches the sources.
-7. Run the source-integrity test that compares emitted codes with authored
-   pages.
-8. Exercise the actual CLI or LSP interface if the link behavior changed.
+1. Confirm that the condition is a MarkScript failure for which a stable code is necessary.
+   Reuse an existing code for the same condition.
+   Propagated TypeScript and user-library exceptions keep their original identities.
+2. Select an unused number in the detecting subsystem's range.
+3. Add `packages/manuals/manuals/diagnostics/CODE.ms` with the exact identity H1 and an applicable body.
+4. Emit the exact code from the detecting package.
+   Include the most exact available filename, source position, MDAST path, and cause.
+5. For a new or changed language contract, update the design document.
+6. Run the manuals build to update the importable catalog.
+7. Run the source-integrity test to compare emitted codes and authored pages.
+8. If link behavior changed, verify the actual CLI or LSP interface.
 
-Search before allocating:
+Before code number allocation, search the sources:
 
 ```sh
 rg -n "(?:SYN|ERR|SUG)[0-9]{4}" \
@@ -192,29 +178,27 @@ rg -n "(?:SYN|ERR|SUG)[0-9]{4}" \
   packages/manuals/manuals/diagnostics
 ```
 
-Every diagnostic page must correspond to an emitted code. Every emitted
-MarkScript code must have its page.
+Each diagnostic page must correspond to an emitted code. Each emitted MarkScript code must have a page.
 
 ## Authoring handbooks and tutorials
 
-Handbooks explain stable contracts by subject. Tutorials guide a reader toward
-one outcome. Both are free-form `.ms` documents and can use the whole language.
-Use straightforward Markdown for static material.
+Handbooks explain stable contracts by subject. Tutorials guide readers to one result.
+Both use `.ms` and can use the full language.
+Use standard Markdown for static content.
 
 A handbook should include:
 
-- a clear audience and scope;
-- exact contracts and execution rules;
-- tables where repeated mappings matter;
-- examples that are valid for the current implementation;
-- source pointers for agents and maintainers;
-- API names together with their operational effects.
+- Clear audience and scope.
+- Exact contracts and execution rules.
+- Tables for repeated maps.
+- Valid examples for the current implementation.
+- Source locations for agents and maintainers.
+- API names with their operational effects.
 
-A tutorial should include prerequisites, a concrete target, a sequence of
-working steps, expected output, and recovery points. Link to handbooks for
-detailed reference material.
+A tutorial must include prerequisites, a concrete target, working steps, expected output, and recovery points.
+Link detailed references to handbooks.
 
-Create a manual page for a stable contract, a complete task, or a recovery
+Create a manual page for a stable contract, a full task, or a recovery
 procedure. Direct getters and isolated flags can remain in API documentation.
 
 ## Build and import model
@@ -229,28 +213,27 @@ The manuals package follows runtime and compiler in the build order:
   -> VS Code extension
 ```
 
-Runtime and compiler compile the catalog's `.ms` sources, so the compiled
-catalog is unavailable while those packages build. Packages built after the
-manuals package may import it.
+Runtime and compiler compile the catalog's `.ms` sources.
+The compiled catalog is thus unavailable during their build. Packages after the manuals build can import it.
 
 For each source, the build:
 
-1. calls the compiler's non-executing graph bundle;
-2. writes an importable entry and source map beneath `packages/manuals/dist/`;
-3. imports and calls that trusted compiled entry;
-4. validates the page identity appropriate to its manual category;
-5. indexes the resulting `mdast.Root` and derived metadata.
+1. Calls the compiler's static graph bundler.
+2. Writes an importable entry and source map under `packages/manuals/dist/`.
+3. Imports and calls the trusted compiled entry.
+4. Validates the page identity for its manual category.
+5. Indexes the resulting `mdast.Root` and derived metadata.
 
-The compiled catalog parses MDAST on module import. `getManual` returns the
-full parsed page or index, including its root. `lookupManual` preserves lookup
-failure detail, `listManuals` lists pages with an optional category filter, and
-`manualDocumentationUrl` resolves the authored `.ms` location. Titles and
-ordered section text are derived from that same root at import time. The `.ms`
-page is the sole hand-authored prose record.
+The compiled catalog parses MDAST on module import.
+`getManual` returns the full parsed page or index, including its root.
+`lookupManual` keeps lookup failure details. `listManuals` lists pages with an optional category filter.
+`manualDocumentationUrl` resolves the authored `.ms` location.
 
-Readers and agents use the `.ms` source directly. Structural tools traverse the
-catalog's MDAST, and presentation tools serialize or render that tree when
-needed.
+The catalog derives titles and ordered section text from the same root at import time.
+The `.ms` page is the only manually authored text record.
+
+Readers and agents use `.ms` source directly. Structural tools traverse catalog MDAST.
+Presentation tools serialize or render that tree as necessary.
 
 ## Generated files
 
@@ -260,20 +243,19 @@ catalog parser when the catalog contract changes.
 The build replaces `packages/manuals/dist/` and generated declarations. Edit
 the source page or build implementation and then rebuild these artifacts.
 
-If build output is stale, fix the source or build script and rebuild. The
-source `.ms` page remains the canonical human-readable version.
+For stale build output, correct the source or build script. Then rebuild.
+The `.ms` source stays the human-readable version.
 
 ## Determinism and safety
 
 Manual builds execute the compiled manual entries as trusted repository code.
 Keep their behavior deterministic and local:
 
-- avoid clocks, randomness, network requests, and machine-specific paths;
-- limit manual callbacks to outputs produced by the manuals build;
-- keep imported data versioned in the repository;
-- use Markdown directly when it expresses the page clearly;
-- send any necessary build-time logging to stderr so generated output remains
-  clean.
+- Keep pages free of clock, randomness, network, and machine-specific dependencies.
+- Limit manual callbacks to outputs from the manuals build.
+- Keep imported data versioned in the repository.
+- Use Markdown directly when it clearly expresses the page.
+- Send necessary build logs to stderr for clean generated output.
 
 These constraints make compiled catalogs reproducible across package and
 extension builds.
@@ -293,18 +275,17 @@ bun run markscript help ERR1234
 bun run markscript help ERR1234 > /tmp/ERR1234.md
 ```
 
-The terminal form should be readable at the current terminal width. The
-redirected form should contain Markdown serialized from the same MDAST and
-include the `.ms` source location.
+Verify that the terminal form is readable at the current width.
+Verify that redirected output contains Markdown from the same MDAST and includes the `.ms` source location.
 
 Also verify:
 
-- the H1 and filename identity agree;
-- all examples match current syntax and API names;
-- the page states whether checking, compilation, or execution occurred;
-- source pointers name current files and symbols;
-- explanatory prose appears only in the `.ms` page;
-- compiled catalog changes trace back to source edits.
+- H1 and filename identities agree.
+- Examples use current syntax and API names.
+- The page states whether checks, compilation, or execution occurred.
+- Source references identify current files and symbols.
+- Explanations appear only in the `.ms` page.
+- Compiled catalog changes come from source edits.
 
 ## Implementation reference
 
@@ -318,5 +299,5 @@ Also verify:
 | Extension packaging of pages | `packages/vscode-markscript/build.ts` |
 | Code allocation and repository rules | `AGENTS.md` |
 
-Each manual's `.ms` file is canonical. The build compiles it into MDAST, and
-all manual interfaces refer to that same page.
+Each manual's `.ms` file is its source. The build compiles it to MDAST.
+All manual interfaces refer to the same page.

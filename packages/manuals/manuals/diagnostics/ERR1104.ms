@@ -2,10 +2,9 @@
 
 ## Problem
 
-MarkScript represents authored content as a typed MDAST tree. A Markdown or JSX
-node appears under a parent with a different content type. The
-diagnostic names the node, its current parent context, and the path to the
-invalid insertion.
+MarkScript represents authored content as a typed MDAST tree.
+A Markdown or JSX node has a parent with an incompatible content type.
+The diagnostic identifies the node, its current parent context, and the path to the invalid insertion.
 
 ## Common cases
 
@@ -20,8 +19,9 @@ invalid insertion.
 
 ## Fix
 
-Use the reported path to locate the parent. Move the reported node to a parent
-that accepts its content type, or replace it with a node valid in the current
-context named by the diagnostic. Remove nested links, keep a root at the
-document entry, place only list items directly inside lists, and give each
-`pre` exactly one direct `code` child.
+Use the reported path to find the parent.
+Move the node to a parent that accepts its content type.
+Alternatively, replace it with a node that is valid in the reported context.
+
+Remove nested links. Keep a root at the document entry.
+Put only list items directly inside lists. Give each `pre` exactly one direct `code` child.

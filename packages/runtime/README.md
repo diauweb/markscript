@@ -1,14 +1,13 @@
 # @markscript/runtime
 
-The JSX runtime, MarkValue construction layer, MDAST validation, and document
-lifecycle for MarkScript.
+This package gives the JSX runtime, MarkValue construction layer,
+MDAST validation, and document lifecycle for MarkScript.
 
-Most applications should import the public API from `@markscript/markscript`.
-The compiler targets `@markscript/runtime/jsx-runtime` automatically.
+For most applications, import the public API from `@markscript/markscript`.
+The compiler automatically uses `@markscript/runtime/jsx-runtime`.
 
 ```sh
 bun add @markscript/runtime
 ```
 
-See the [MarkScript repository](https://github.com/diauweb/markscript) for the
-language design, examples, and development documentation.
+Refer to the [MarkScript repository](https://github.com/diauweb/markscript) for the language design, examples, and development documents.

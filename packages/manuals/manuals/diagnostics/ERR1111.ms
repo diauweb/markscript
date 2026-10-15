@@ -2,10 +2,9 @@
 
 ## Problem
 
-An inline or leaf directive contains a bracket label. These forms configure
-the next compatible node as zero-width values and cannot own content.
+An inline or leaf directive contains a bracket label.
+These forms configure the next compatible node with zero-width values. They cannot contain content.
 
 ## Fix
 
-Remove `[...]` and place the intended content in the following Markdown or
-component node.
+Remove `[...]`. Put the content in the next Markdown or component node.

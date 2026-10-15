@@ -1,16 +1,13 @@
 # HBK1002 — Runtime, JSX, and document lifecycle
 
-The MarkScript runtime turns JSX construction values into validated MDAST and
-provides the two lifetime registration APIs, `onTransform` and `onReady`. Its scope
-is document construction, validation, and lifecycle management. TypeScript
-libraries provide format conversion, publishing, networking, database access,
-and application policy.
+The MarkScript runtime converts JSX construction values to validated MDAST.
+It gives `onTransform` and `onReady` for lifetime registration. Its scope is document construction, validation, and lifecycle management.
+TypeScript libraries give format conversion, publication, network operations, database access, and application policy.
 
-The public package is `@markscript/markscript`, implemented by
-`packages/markscript/src/index.ts`. Low-level runtime exports are defined in
-`packages/runtime/src/index.ts`. Most documents need only `onTransform`, `onReady`,
-and types from `@markscript/markscript`; the compiler injects the JSX runtime
-imports.
+`packages/markscript/src/index.ts` implements the public package, `@markscript/markscript`.
+`packages/runtime/src/index.ts` defines low-level runtime exports.
+For most documents, use only `onTransform`, `onReady`, and types from `@markscript/markscript`.
+The compiler inserts JSX runtime imports.
 
 ## Public imports
 
@@ -46,7 +43,7 @@ The JSX transform targets `@markscript/runtime/jsx-runtime` in production and
 
 ## The internal construction values
 
-Before lowering, JSX and expressions form a lightweight value graph:
+Before MDAST conversion, JSX and expressions form a small value graph:
 
 ```ts
 type MarkValue =
@@ -63,29 +60,26 @@ type MarkValue =
   | undefined
 ```
 
-`MarkElement`, `MarkFragment`, `MarkAnnotation`, and `MarkGroup` are branded
-construction values. Parsed directives create annotations or temporary groups.
-`lowerToRoot` attaches their data and flattens every group before returning the
-final MDAST root.
+`MarkElement`, `MarkFragment`, `MarkAnnotation`, and `MarkGroup` are branded construction values.
+Parsed directives create annotations or temporary groups.
+`lowerToRoot` attaches their data and flattens each group before it returns the final MDAST root.
 
-The runtime rejects arbitrary values, including objects with custom `toString`
-methods. Convert them explicitly to text, return a supported JSX value, or
-construct a valid MDAST node.
+The runtime rejects any values, including objects with custom `toString` methods.
+Convert them explicitly to text, return supported JSX, or construct a valid MDAST node.
 
 ## JSX call behavior
 
 The JSX runtime follows three branches:
 
-1. `Fragment` creates a fragment value after rejecting non-children props.
+1. `Fragment` rejects props other than children, then creates a fragment value.
 2. A function is called immediately as an uppercase component.
 3. A recognized lowercase string creates a Markdown element value.
 
-Other names and values fail. JSX keys also fail because MarkScript and MDAST
-define no key identity. TypeScript catches many invalid props and names. The
-runtime validates dynamic and transpile-only execution.
+Other names and values cause errors. JSX keys also cause errors because MarkScript and MDAST define no key identity.
+TypeScript finds many invalid props and names. The runtime validates dynamic values and transpile-only execution.
 
-Consumer source remains an ordinary language-labelled `code` node. Transforms
-select it without a special runtime type:
+Consumer source stays a standard `code` node with a language label.
+Transforms select it through standard MDAST fields:
 
 ```ts
 import {onTransform} from '@markscript/markscript'
@@ -100,9 +94,9 @@ onTransform(({root}) => {
 })
 ```
 
-Source locations supplied by `jsxDEV` are retained on temporary construction
-values so runtime diagnostics can name the original file, line, and column.
-The implementation is in `packages/runtime/src/jsx-runtime.ts`.
+Temporary construction values keep source locations from `jsxDEV`.
+Runtime diagnostics can thus identify the original file, line, and column.
+Refer to `packages/runtime/src/jsx-runtime.ts` for the implementation.
 
 Expression-valued metadata uses the public helpers:
 
@@ -111,14 +105,13 @@ attach(namespace, data)
 group(namespace, data, children)
 ```
 
-The compiler uses these functions for directive syntax. `attach` is also useful
-when metadata contains arrays, nested objects, numbers, or computed values.
+The compiler uses these functions for directive syntax.
+Use `attach` for metadata with arrays, nested objects, numbers, or computed values.
 
 ## Authoring components
 
-Components are TypeScript functions. Give their props specific types and
-represent children as `unknown` when MarkScript will lower them. A component
-may be synchronous or asynchronous.
+Components are TypeScript functions. Give props specific types.
+For children that MarkScript converts to MDAST, use `unknown`. A component can be synchronous or asynchronous.
 
 ```mdx
 export interface CalloutProps {
@@ -137,16 +130,12 @@ export function Callout({kind, children}: CalloutProps) {
 }
 ```
 
-An attachment inside a component follows the same next-node rule as one in the
-document. In this example, `style` attaches to the `strong` node because it
-is the next compatible node in that component's blockquote child sequence. If
-the intent is to annotate the blockquote, place the annotation immediately
-before the component invocation in the parent sequence.
+An attachment inside a component uses the same next-node rule as a document attachment.
+Here, `style` attaches to `strong`, the next compatible node in the component's blockquote child sequence.
+To annotate the blockquote, put the annotation immediately before the component invocation in the parent sequence.
 
-MarkScript records JSX component invocations lazily. During rendering, it
-resolves child components before their parent and resolves sibling components
-left-to-right. An async component completes before the next sibling begins, so
-lifecycle callbacks retain source registration order.
+MarkScript records component invocations lazily. During rendering, it resolves children before their parent and siblings from left to right.
+An async component completes before the next sibling starts. Lifecycle callbacks thus keep source registration order.
 
 ```mdx
 export async function Records() {
@@ -159,9 +148,8 @@ export async function Records() {
 <Records />
 ```
 
-The runtime awaits the direct component result. Promises nested inside the
-resolved value remain invalid; combine them into the direct result with
-`Promise.all`.
+The runtime waits for the direct component result. Promises inside the resolved value stay invalid.
+Use `Promise.all` to combine them into the direct result.
 
 ## Intrinsic lowering details
 
@@ -181,20 +169,17 @@ The lowerer enforces both output shape and parent context.
 | Leaf directive | root or block | phrasing |
 | Inline directive | phrasing or link | phrasing |
 
-The lowerer wraps phrasing intrinsics returned at root or block level in a
-paragraph. A component can therefore return `<strong>` as a top-level value,
-and the resulting tree still satisfies paragraph child validation.
+The lowerer puts phrasing intrinsics returned at root or block level in a paragraph.
+A component can thus return `<strong>` as a top-level value. The resulting tree satisfies paragraph child validation.
 
-The runtime validates an existing MDAST root returned as a document value. At
-root or block level, its children are spliced into the surrounding sequence.
-Existing non-root nodes retain their object identity during the mutable phase,
-and each node object may appear at one location.
+The runtime validates existing MDAST roots returned as document values.
+At root or block level, it inserts their children into the surrounding sequence.
+Existing non-root nodes keep object identity during the mutable phase. Each node object can appear at one location.
 
 ## Document lifecycle
 
-`executeDocument` creates an isolated state for each entry invocation using
-`AsyncLocalStorage`. Concurrent document executions use separate callback
-queues.
+`executeDocument` uses `AsyncLocalStorage` to create isolated state for each entry invocation.
+Concurrent document executions use separate callback queues.
 
 ```text
 render
@@ -210,19 +195,19 @@ render
 | Phase | Root state | Permitted work |
 |---|---|---|
 | Module initialization | No document root | Standard ESM initialization |
-| Render | Construction values are being evaluated | Register `onTransform` and `onReady`; evaluate expressions |
-| Transform | Complete baseline root, mutable | Rewrite, insert, remove, or annotate MDAST |
-| Validation/freeze | Internal transition | Enforce final tree structure and node uniqueness |
-| Ready | Complete root, deeply read-only | Inspect, serialize, publish, or perform I/O |
-| Closed | Invocation finished | No callback registration |
+| Render | Construction value evaluation | Register `onTransform` and `onReady`. Evaluate expressions |
+| Transform | Full mutable baseline root | Change, insert, remove, or annotate MDAST |
+| Validation/freeze | Internal transition | Enforce final structure and node uniqueness |
+| Ready | Full deeply read-only root | Examine, serialize, publish, or do I/O |
+| Closed | Completed invocation | No callback registration |
 
-Registration is legal only during render. Calling `onTransform` or `onReady`
-outside a running document, or trying to register another callback from a
-transform/ready callback, produces `ERR1301`.
+Registration is valid only during render.
+A call to `onTransform` or `onReady` outside an active document causes `ERR1301`.
+Registration from a transform or ready callback also causes this error.
 
 ## Transform callbacks
 
-`onTransform(callback)` queues mutable work for the complete baseline tree.
+`onTransform(callback)` queues mutable work for the full baseline tree.
 
 ```ts
 interface TransformContext {
@@ -230,8 +215,8 @@ interface TransformContext {
 }
 ```
 
-Callbacks run in registration order and are awaited one at a time. Every
-callback sees changes made by earlier callbacks.
+Callbacks execute in registration order. The runtime waits for one callback at a time.
+Each callback sees changes from earlier callbacks.
 
 ```mdx
 import {onTransform} from '@markscript/markscript'
@@ -250,13 +235,12 @@ import {visit} from 'unist-util-visit'
 }
 ```
 
-The callback may use any MDAST or unist utility. If it creates an
-invalid node, reuses a node object, puts a node in the wrong context, or leaves
-an invalid field, final validation rejects the entry after all transforms have
-run.
+The callback can use any MDAST or unist utility.
+Final validation rejects invalid nodes, reused node objects, nodes in incorrect contexts, and invalid fields.
+This validation occurs after all transforms execute.
 
-Transform callbacks may be asynchronous. The runtime waits for each callback's
-returned promise to settle before starting the next callback.
+Transform callbacks can be asynchronous.
+The runtime waits for each returned promise to settle before the next callback starts.
 
 ## Ready callbacks
 
@@ -268,10 +252,10 @@ interface ReadyContext {
 }
 ```
 
-The root has passed validation and is deeply frozen before the first callback
-runs. Ready callbacks are awaited sequentially in registration order. They can
-serialize, write files, publish, perform network operations, or call any
-library. The frozen root prevents document mutation during this phase.
+The runtime validates and deeply freezes the root before the first ready callback.
+It waits for ready callbacks sequentially in registration order.
+Callbacks can serialize, write files, publish, do network operations, or call any library.
+The frozen root prevents document changes in this phase.
 
 ```mdx
 import {onReady} from '@markscript/markscript'
@@ -284,17 +268,14 @@ import {writeFile} from 'node:fs/promises'
 }
 ```
 
-The document entry resolves after every asynchronous ready callback completes.
-A callback exception rejects the entry with standard JavaScript error
-semantics. Under `markscript run`, CLI formatting and stdout output occur after
-the complete lifecycle resolves.
+The entry resolves after every asynchronous ready callback completes.
+A callback exception rejects the entry with standard JavaScript error semantics.
+Under `markscript run`, CLI format conversion and stdout output occur after full lifecycle resolution.
 
 ## Final data and deep freezing
 
-The final graph may contain scalar values, arrays, and plain objects whose
-prototype is `Object.prototype` or `null`. `ERR1201` rejects accessor
-properties, functions, class instances, maps, sets, dates, response objects,
-and other values outside the deeply read-only document data model.
+The final graph can contain scalars, arrays, and plain objects with `Object.prototype` or `null` as their prototype.
+`ERR1201` rejects accessor properties, functions, class instances, maps, sets, dates, response objects, and other values outside the deeply read-only data model.
 
 Convert library objects to plain records during a transform callback:
 
@@ -309,21 +290,19 @@ node.data = {
 }
 ```
 
-Directive attachments created by `attach` may initially contain live evaluated
-values so a transform can consume them. The transform must replace functions,
-class instances, and other non-document values with plain readable data, or
-remove that metadata, before final validation and freezing.
+Directive attachments from `attach` can initially contain live evaluated values for a transform to use.
+Before final validation and freezing, replace functions, class instances, and other non-document values with plain readable data.
+Alternatively, remove that metadata.
 
-Validation separately enforces node uniqueness: a node object may occur only
-once. Metadata object identity remains ordinary data structure. For portability,
-avoid metadata cycles because JSON and Markdown adapters can fail to serialize
-them; CLI formatting failures carry `ERR2101`.
+Validation also enforces node uniqueness. Each node object can occur only once.
+Metadata object identity uses standard data structure semantics.
+For portability, keep metadata free of cycles. JSON and Markdown adapters can fail to serialize cycles.
+CLI format failures use `ERR2101`.
 
 ## Removing metadata
 
-`stripData(tree)` returns a detached copy with every MDAST node's `data` field
-removed and leaves the input unchanged. This supports use with frozen final
-roots.
+`stripData(tree)` returns a detached copy without MDAST `data` fields. It keeps the input unchanged.
+The helper thus works with frozen final roots.
 
 ```ts
 import {stripData} from '@markscript/markscript'
@@ -331,9 +310,9 @@ import {stripData} from '@markscript/markscript'
 const portable = stripData(root)
 ```
 
-Arrays, positions, node fields, and plain nested records are copied. The helper
-uses a visited-object map to terminate recursion through shared non-node
-metadata. Its implementation is `packages/runtime/src/data.ts`.
+The helper copies arrays, positions, node fields, and plain nested records.
+A visited-object map stops recursion through shared non-node metadata.
+Refer to `packages/runtime/src/data.ts` for the implementation.
 
 ## Runtime diagnostics
 
@@ -349,8 +328,7 @@ metadata. Its implementation is `packages/runtime/src/data.ts`.
 | Invalid lifetime registration | `ERR1301` |
 | Exception thrown by user/library callback | Propagated unchanged |
 
-Use `markscript help CODE` for the indexed manual entry for a diagnostic code
-emitted by MarkScript.
+Use `markscript help CODE` to read the indexed manual entry for a MarkScript diagnostic code.
 
 ## Implementation references
 

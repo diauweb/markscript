@@ -1,8 +1,7 @@
 # TUT1004 — TypeScript projects, imports, and editor setup
 
-This intermediate tutorial organizes a MarkScript document as a TypeScript
-project. It adds shared `.ts` and `.tsx` modules, composes a second `.ms` file,
-and configures editor diagnostics.
+This intermediate tutorial organizes a document as a TypeScript project.
+It adds shared `.ts` and `.tsx` modules, combines a second `.ms` file, and configures editor diagnostics.
 
 ## Create the project layout
 
@@ -19,8 +18,8 @@ src/
 tsconfig.json
 ```
 
-Markdown-heavy entry files belong in `docs`. Data access, algorithms, and
-components shared by several documents belong in ordinary TypeScript modules.
+Put entries with mostly Markdown in `docs`.
+Put data access, algorithms, and shared components in standard TypeScript modules.
 
 ## Configure TypeScript
 
@@ -41,9 +40,8 @@ Create `tsconfig.json`:
 }
 ```
 
-MarkScript uses the project configuration for strictness, path mappings,
-ambient declarations, and module resolution. Without `--project`, the checker
-searches from the source file for the nearest `tsconfig.json`.
+MarkScript uses project configuration for strictness, path maps, ambient declarations, and module resolution.
+Without `--project`, the checker finds the nearest `tsconfig.json` from the source file.
 
 Pass an explicit configuration when a workspace contains several projects:
 
@@ -106,8 +104,7 @@ export const reportTitle = 'Service report'
 }
 ```
 
-The document expression awaits `loadMetrics()` and inserts the component
-results in array order.
+The document expression waits for `loadMetrics()` and inserts component results in array order.
 
 ## Define the `.ms` module interface
 
@@ -134,13 +131,11 @@ The compiler generates an async default export with this effective type:
 type MarkScriptEntry = () => Promise<mdast.Root>
 ```
 
-Use named exports for `.ms` module bindings. Put private module-level
-declarations in imported `.ts` or `.tsx` files. The compiler reserves the
-`.ms` default export for the generated document entry.
+Use named exports for `.ms` module bindings. Put private module-level declarations in imported `.ts` or `.tsx` files.
+The compiler reserves the `.ms` default export for the generated document entry.
 
-Module-scope `await` is outside the grammar. Export an async function and call
-it from a document expression when the module interface needs asynchronous
-work.
+The grammar excludes module-scope `await`.
+For asynchronous module work, export an async function. Call it from a document expression.
 
 ## Compose MarkScript modules
 
@@ -166,9 +161,9 @@ The final section is the {appendixTitle.toLowerCase()}.
 <Appendix />
 ```
 
-The checker resolves each relative `.ms` import and maps diagnostics to its
-source file. The async `Appendix` entry returns a root whose children are
-inserted into the surrounding flow content when the component resolves.
+The checker resolves each relative `.ms` import and maps diagnostics to its source file.
+The async `Appendix` entry returns a root.
+When the component resolves, the runtime inserts that root's children into the surrounding flow content.
 
 ## Check and compile the module graph
 
@@ -188,9 +183,8 @@ bun run markscript compile docs/report.ms \
   --output build/report.mjs
 ```
 
-Compilation generates and type-checks TSX, bundles file-backed relative source
-modules, and maps generated locations to the original `.ms` files. Package
-imports remain external ESM imports.
+Compilation generates and checks TSX, bundles relative filesystem source modules, and maps generated locations to original `.ms` files.
+Package imports stay external ESM imports.
 
 Import the compiled artifact from Bun:
 
@@ -202,12 +196,11 @@ const root = await renderReport()
 console.log(root.type)
 ```
 
-Importing the artifact initializes its ESM modules. Calling `renderReport()`
-starts document rendering and returns the finalized MDAST root.
+An artifact import initializes its ESM modules. A call to `renderReport()` starts rendering and returns the finalized MDAST root.
 
 ## Configure VS Code
 
-The `markscript-vscode` extension supplies `.ms` syntax highlighting,
+The `markscript-vscode` extension gives `.ms` syntax highlighting,
 diagnostics, completion, hover information, navigation, references, semantic
 tokens, Markdown link support, and a document outline.
 
@@ -219,12 +212,11 @@ Enable validation in workspace settings:
 }
 ```
 
-Editor features follow Volar and TypeScript project ownership: the nearest
-`tsconfig.json` or `jsconfig.json` owns the file, while files outside a
-configured project use an inferred project.
+Editor features use Volar and TypeScript project ownership. The nearest `tsconfig.json` or `jsconfig.json` owns a file.
+Files outside configured projects use an inferred project.
 
-The extension starts its packaged language server with `bun`. Configure the
-runtime when Bun is absent from the extension host's `PATH`:
+The extension starts its packaged server with `bun`.
+If the extension host's `PATH` excludes Bun, configure the runtime:
 
 ```json
 {
@@ -232,14 +224,12 @@ runtime when Bun is absent from the extension host's `PATH`:
 }
 ```
 
-After changing server settings, run **MarkScript: Restart Language Server**
-from the command palette.
+After server setting changes, run **MarkScript: Restart Language Server** from the command palette.
 
 ## Use editor feedback with the CLI
 
-The language server checks unsaved `.ms` documents and follows their relative
-`.ms`, TypeScript, and JavaScript dependencies. It refreshes diagnostics after
-source, `tsconfig.json`, or `package.json` changes.
+The server checks unsaved `.ms` documents and follows relative `.ms`, TypeScript, and JavaScript dependencies.
+It updates diagnostics after source, `tsconfig.json`, or `package.json` changes.
 
 Use the CLI to reproduce project diagnostics before compilation:
 
@@ -247,8 +237,8 @@ Use the CLI to reproduce project diagnostics before compilation:
 bun run markscript check docs/report.ms --project tsconfig.json
 ```
 
-The editor and `check` analyze source without importing the document modules.
-Run the entry separately when its code is ready to execute:
+The editor and `check` analyze source without document module imports.
+When the code is ready, run the entry separately:
 
 ```sh
 bun run markscript run docs/report.ms \

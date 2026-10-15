@@ -1,16 +1,14 @@
 # @markscript/remark-mdx-directive
 
-MarkScript fork of `remark-directive@4.0.0`. It composes the scoped micromark
-and MDAST forks and forwards the MDX expression-parser options used by the
-MarkScript compiler.
+This package is a MarkScript fork of `remark-directive@4.0.0`.
+It combines the scoped micromark and MDAST forks.
+It passes MDX expression-parser options from the MarkScript compiler to those forks.
 
 ## Development
 
-Maintain source in `src/`. The public TypeScript entrypoint owns the exported
-types and module augmentations; `src/lib/` contains the annotated JavaScript
-implementation. The workspace build emits
-`dist/` JavaScript and `types/` declarations before building their consumers.
-Both output directories are ignored by Git.
+Maintain source in `src/`. The public TypeScript entrypoint defines exported types and module augmentations.
+`src/lib/` contains the annotated JavaScript implementation.
+The workspace build emits `dist/` JavaScript and `types/` declarations before consumer builds. Git ignores both directories.
 
 From the repository root:
 
@@ -27,11 +25,8 @@ bun run check
 [![Downloads][badge-downloads-image]][badge-downloads-url]
 [![Size][badge-size-image]][badge-size-url]
 
-**[remark][github-remark]** plugin to support the
-[generic directives proposal][commonmark-directive-proposal]
-(`:cite[smith04]`,
-`::youtube[Video of a cat in a box]{v=01ab2cd3efg}`,
-and such).
+This **[remark][github-remark]** plugin supports the [generic directives proposal][commonmark-directive-proposal].
+Examples include `:cite[smith04]` and `::youtube[Video of a cat in a box]{v=01ab2cd3efg}`.
 
 ## Contents
 
@@ -59,55 +54,38 @@ and such).
 
 ## What is this?
 
-This package is a [unified][github-unified]
-([remark][github-remark])
-plugin to add support for directives:
-one syntax for arbitrary extensions in markdown.
+This [unified][github-unified] ([remark][github-remark]) plugin adds directive support.
+Directives give one syntax for any Markdown extensions.
 
 ## When should I use this?
 
-Directives are one of the four ways to extend markdown:
-an arbitrary extension syntax
-(see [Extending markdown][github-micromark-extending-markdown]
-in micromark’s docs for the alternatives and more info).
-This mechanism works well when you control the content:
-who authors it,
-what tools handle it,
-and where it’s displayed.
-When authors can read a guide on how to embed a tweet but are not expected to
-know the ins and outs of HTML or JavaScript.
-Directives don’t work well if you don’t know who authors content,
-what tools handle it,
-and where it ends up.
-Example use cases are a docs website for a project or product,
-or blogging tools and static site generators.
+Directives are one of four Markdown extension mechanisms.
+Refer to [Extending markdown][github-micromark-extending-markdown] in micromark documentation for alternatives.
+Use directives when you control authors, processing tools, and display destinations.
+Authors can use a guide to embed a tweet without detailed HTML or JavaScript knowledge.
 
-If you *just* want to turn markdown into HTML (with maybe a few extensions such
-as this one),
-we recommend [`micromark`][github-micromark] with
-[`micromark-extension-directive`][github-micromark-extension-directive] instead.
-If you don’t use plugins and want to access the syntax tree,
-you can use
-[`mdast-util-from-markdown`][github-mdast-util-from-markdown] with
-[`mdast-util-directive`][github-mdast-util-directive].
+Directives are less suitable when authors, tools, or destinations are unknown.
+Use cases include project or product documentation sites, blog tools, and static site generators.
+
+For direct Markdown-to-HTML conversion, use [`micromark`][github-micromark] with [`micromark-extension-directive`][github-micromark-extension-directive].
+For syntax tree access without plugins, use [`mdast-util-from-markdown`][github-mdast-util-from-markdown] with [`mdast-util-directive`][github-mdast-util-directive].
 
 ## Install
 
-This package is [ESM only][github-gist-esm].
-In Node.js (version 16+),
-install with [npm][npmjs-install]:
+This package uses [ESM only][github-gist-esm].
+In Node.js 16 or later, install it with [npm][npmjs-install]:
 
 ```sh
 npm install @markscript/remark-mdx-directive
 ```
 
-In Deno with [`esm.sh`][esmsh]:
+In Deno, use [`esm.sh`][esmsh]:
 
 ```js
 import remarkDirective from 'https://esm.sh/@markscript/remark-mdx-directive@0.1'
 ```
 
-In browsers with [`esm.sh`][esmsh]:
+In browsers, use [`esm.sh`][esmsh]:
 
 ```html
 <script type="module">
@@ -117,7 +95,7 @@ In browsers with [`esm.sh`][esmsh]:
 
 ## Use
 
-Say our document `example.md` contains:
+Create `example.md` with this content:
 
 ```markdown
 :::main{#readme}
@@ -132,7 +110,7 @@ A :i[lovely] language know as :abbr[HTML]{title="HyperText Markup Language"}.
 :::
 ```
 
-…and our module `example.js` contains:
+Create `example.js` with this content:
 
 ```js
 /**
@@ -190,7 +168,7 @@ function myRemarkPlugin() {
 }
 ```
 
-…then running `node example.js` yields:
+Run `node example.js` to make:
 
 ```html
 <main id="readme">
@@ -202,12 +180,11 @@ function myRemarkPlugin() {
 
 ## API
 
-This package exports no identifiers.
-The default export is [`remarkDirective`][api-remark-directive].
+The default export is [`remarkDirective`][api-remark-directive]. This package has no named exports.
 
 ### `unified().use(remarkDirective[, options])`
 
-Add support for generic directives.
+Adds support for generic directives.
 
 ###### Parameters
 
@@ -221,8 +198,8 @@ Nothing (`undefined`).
 
 ###### Notes
 
-Doesn’t handle the directives:
-[create your own plugin][unifiedjs-create-remark-plugin] to do that.
+The plugin adds syntax support.
+To process directives, [create your own plugin][unifiedjs-create-remark-plugin].
 
 ### `Options`
 
@@ -230,32 +207,19 @@ Configuration (TypeScript type).
 
 ###### Fields
 
-* `collapseEmptyAttributes`
-  (`boolean`, default: `true`)
-  — collapse empty attributes: get `title` instead of `title=""`
-* `preferShortcut`
-  (`boolean`, default: `true`)
-  — prefer `#` and `.` shortcuts for `id` and `class`
-* `preferUnquoted`
-  (`boolean`, default: `false`)
-  — leave attributes unquoted if that results in less bytes
-* `quoteSmart`
-  (`boolean`, default: `false`)
-  — use the other quote if that results in less bytes
-* `quote`
-  (`'"'` or `"'"`,
-  default:
-  the [`quote`][github-remark-stringify-quote] used by `remark-stringify` for
-  titles)
-  — preferred quote to use around attribute values
+* `collapseEmptyAttributes` (`boolean`, default: `true`): Collapse empty attributes to `title` instead of `title=""`.
+* `preferShortcut` (`boolean`, default: `true`): Use `#` and `.` shortcuts for `id` and `class`.
+* `preferUnquoted` (`boolean`, default: `false`): Omit attribute quotes when this makes fewer bytes.
+* `quoteSmart` (`boolean`, default: `false`): Use the other quote character when this makes fewer bytes.
+* `quote` (`'"'` or `"'"`): Quote character for attribute values.
+  The default is the [`quote`][github-remark-stringify-quote] that `remark-stringify` uses for titles.
 
 ## Examples
 
 ### Example: YouTube
 
-This example shows how directives can be used for YouTube embeds.
-It’s based on the example in Use above.
-If `myRemarkPlugin` was replaced with this function:
+This example uses directives for YouTube embeds. It uses the example in Use.
+Replace `myRemarkPlugin` with this function:
 
 ```js
 /**
@@ -316,7 +280,7 @@ function myRemarkPlugin() {
 }
 ```
 
-…and `example.md` contains:
+Put this content in `example.md`:
 
 ```markdown
 # Cat videos
@@ -324,7 +288,7 @@ function myRemarkPlugin() {
 ::youtube[Video of a cat in a box]{#01ab2cd3efg}
 ```
 
-…then running `node example.js` yields:
+Run `node example.js` to make:
 
 ```html
 <h1>Cat videos</h1>
@@ -333,12 +297,10 @@ function myRemarkPlugin() {
 
 ### Example: Styled blocks
 
-> 👉 **Note**:
-> this is sometimes called admonitions, callouts, etc.
+> **Note:** These blocks also have names such as admonitions or callouts.
 
-This example shows how directives can be used to style blocks.
-It’s based on the example in Use above.
-If `myRemarkPlugin` was replaced with this function:
+This example uses directives to style blocks. It uses the example in Use.
+Replace `myRemarkPlugin` with this function:
 
 ```js
 /**
@@ -379,7 +341,7 @@ function myRemarkPlugin() {
 }
 ```
 
-…and `example.md` contains:
+Put this content in `example.md`:
 
 ```markdown
 # How to use xxx
@@ -391,7 +353,7 @@ if you chose xxx, you should also use yyy somewhere…
 :::
 ```
 
-…then running `node example` yields:
+Run `node example` to make:
 
 ```html
 <h1>How to use xxx</h1>
@@ -403,37 +365,29 @@ if you chose xxx, you should also use yyy somewhere…
 
 ## Authoring
 
-When authoring markdown with directives,
-keep in mind that they don’t work in most places.
-On your own site it can be great!
+Most Markdown tools do not support directives. Use them on sites where you control the parser and renderer.
 
 ## HTML
 
-You can define how directives are turned into HTML.
-If directives are not handled,
-they do not emit anything.
+Define how directives convert to HTML. A directive without a handler emits no content.
 
 ## CSS
 
-How to display directives is left as an exercise for the reader.
+Define the CSS presentation for your directives.
 
 ## Syntax
 
-See [*Syntax* in
-`micromark-extension-directive`](https://github.com/micromark/micromark-extension-directive#syntax).
+Refer to [*Syntax* in `micromark-extension-directive`](https://github.com/micromark/micromark-extension-directive#syntax).
 
 ## Syntax tree
 
-See [*Syntax tree* in
-`mdast-util-directive`](https://github.com/syntax-tree/mdast-util-directive#syntax-tree).
+Refer to [*Syntax tree* in `mdast-util-directive`](https://github.com/syntax-tree/mdast-util-directive#syntax-tree).
 
 ## Types
 
-This package is fully typed with [TypeScript][].
-It exports no additional options.
+This package gives full [TypeScript][] types. It exports no additional options.
 
-If you’re working with the syntax tree,
-you can register the new node types with `@types/mdast` by adding a reference:
+For syntax tree work, register the new types with `@types/mdast`. Add this reference:
 
 ```js
 /**
@@ -460,21 +414,15 @@ function myRemarkPlugin() {
 
 ## Compatibility
 
-Projects maintained by the unified collective are compatible with maintained
-versions of Node.js.
+The unified collective maintains compatibility with supported Node.js versions.
 
-When we cut a new major release,
-we drop support for unmaintained versions of Node.
-This means we try to keep the current release line,
-`remark-directive@3`,
-compatible with Node.js 16.
+New major releases remove support for unmaintained Node.js versions.
+The `remark-directive@3` release line targets Node.js 16 compatibility.
 
 ## Security
 
-Use of `remark-directive` does not involve **[rehype][github-rehype]**
-([hast][github-hast])
-or user content so there are no openings for
-[cross-site scripting (XSS)][wikipedia-xss] attacks.
+`remark-directive` uses neither **[rehype][github-rehype]** ([hast][github-hast]) nor user content.
+It thus gives no entry point for [cross-site scripting (XSS)][wikipedia-xss] attacks.
 
 ## Related
 
@@ -492,16 +440,11 @@ or user content so there are no openings for
 
 ## Contribute
 
-See [`contributing.md`][health-contributing]
-in
-[`remarkjs/.github`][health]
-for ways to get started.
-See [`support.md`][health-support] for ways to get help.
+Refer to [`contributing.md`][health-contributing] in [`remarkjs/.github`][health] for contribution instructions.
+Refer to [`support.md`][health-support] for help.
 
 This project has a [code of conduct][health-coc].
-By interacting with this repository,
-organization,
-or community you agree to abide by its terms.
+Interaction with the repository, organization, or community indicates agreement to its terms.
 
 ## License
 

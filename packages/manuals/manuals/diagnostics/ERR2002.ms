@@ -2,9 +2,9 @@
 
 ## Problem
 
-Bun emitted no entry module for the requested MarkScript bundle.
+Bun emitted no entry module for the specified MarkScript bundle.
 
 ## Fix
 
-Retry with a supported Bun version. If the failure repeats, report it with the
-entry path, the Bun and MarkScript versions, and any preceding Bun diagnostics.
+Try again with a supported Bun version.
+If the failure occurs again, report the entry path, Bun version, MarkScript version, and earlier Bun diagnostics.

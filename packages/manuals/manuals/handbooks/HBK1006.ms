@@ -1,30 +1,27 @@
 # HBK1006 — Agent and developer workflow
 
-The design document defines the product contract, `AGENTS.md` indexes the
-workspace, source implements the contract, and `.ms` manuals explain stable
-rules.
-Generated artifacts are derived build outputs.
+The design document defines the product contract. `AGENTS.md` indexes the workspace.
+Source implements the contract. `.ms` manuals explain stable rules.
+Generated artifacts are build outputs.
 
 When a decision changes, update the design and implementation together.
-Unshipped APIs have no migrations, aliases, deprecations, or compatibility
-machinery.
+Implement unshipped APIs with the current contract, without migrations, aliases, deprecations, or compatibility code.
 
 ## Required references
 
-Read in this order when beginning a non-trivial change:
+For a substantial change, read these references in order:
 
 1. `markscript_design.md` for the language and product contract.
 2. `AGENTS.md` for dependency order, implementation locations,
    generated-file rules, diagnostics, and verification policy.
-3. The relevant package's public index and implementation files.
-4. The relevant handbook or diagnostic page under
+3. The applicable package's public index and implementation files.
+4. The applicable handbook or diagnostic page under
    `packages/manuals/manuals/`.
 5. Focused tests for the contract being changed.
 
-If prose and source disagree, determine whether the implementation is
-incomplete or the product decision changed. Record intentional contract changes
-in the design. Make the implementation, manuals, and focused regression tests
-agree with that contract.
+If text and source disagree, identify an incomplete implementation or a changed product decision.
+Record intentional contract changes in the design.
+Align implementation, manuals, and focused regression tests with that contract.
 
 ## Workspace architecture
 
@@ -47,11 +44,9 @@ The packages follow this dependency order:
                        VS Code extension
 ```
 
-The root `scripts/build.ts` must preserve this order. Runtime and compiler build
-before the `.ms` manuals and compile those manual sources, so the compiled
-catalog is unavailable to them. The CLI and language server build later and may
-import it. The extension bundles the language server and manual sources after
-those stages succeed.
+The root `scripts/build.ts` must keep this order. Runtime and compiler build before the `.ms` manuals and compile those sources.
+The compiled catalog is thus unavailable to them. The CLI and language server build later and can import it.
+After these stages succeed, the extension bundles the server and manual sources.
 
 ## Implementation locations
 
@@ -74,9 +69,9 @@ those stages succeed.
 | VS Code client, grammar, packaging | `packages/vscode-markscript/` |
 | Cross-package build orchestration | `scripts/build.ts` |
 
-Begin with the listed source, then trace public re-exports and consumers. Put
-shared behavior in the earliest package that defines the contract, and keep
-later adapters focused on their interface.
+Start with the listed source. Then trace public reexports and consumers.
+Put shared behavior in the earliest package that defines the contract.
+Keep later adapters focused on their interface.
 
 ## Execution behavior
 
@@ -91,65 +86,57 @@ Use this matrix for compiler, loader, CLI, manual, and editor changes.
 | Manual build | yes, for trusted repository manual entries | yes, for those trusted entries |
 | `run` / `runFile` | yes | yes |
 
-Checking and bundling inspect exports through parsing and TypeScript analysis.
-Importing the source module during either operation violates the execution
-contract. The language server calls the checker and has no runner dependency.
-A side-effect-file test through the production loader path verifies these
-requirements. Mock interaction tests verify calls and arguments.
+Checks and bundles examine exports through parsing and TypeScript analysis.
+A source module import in either operation violates the execution contract.
+The language server uses the checker. It has no runner dependency.
+A side-effect-file test through the production loader verifies these requirements. Mock interaction tests verify calls and arguments.
 
-`run` executes arbitrary JavaScript and must be described as trusted execution.
-Transpile-only mode controls semantic checking. Runtime side effects and final
-MDAST validation still occur.
+`run` executes any JavaScript. Describe it as trusted execution.
+Transpile-only mode controls semantic checks. Runtime side effects and final MDAST validation still occur.
 
 ## Change workflow
 
-### 1. Locate the relevant code
+### 1. Locate the applicable code
 
-Use narrow repository searches before editing:
+Before edits, use narrow repository searches:
 
 ```sh
 rg -n "symbolOrCode" packages markscript_design.md AGENTS.md
 rg --files packages/runtime/src packages/compiler/src
 ```
 
-Trace the public caller, implementation, diagnostics, and build consumer. For
-cross-package behavior, record the dependency direction before adding an
-import.
+Trace the public caller, implementation, diagnostics, and build consumer.
+For behavior across packages, record the dependency direction before a new import.
 
 ### 2. State the invariant
 
 Write down the observable contract in one sentence. Examples:
 
-- check and compile complete without executing source-program side effects;
-- all transform callbacks finish before validation and all ready callbacks see a frozen
-  root;
-- a TypeScript error in an imported `.ms` file is reported on that file;
-- `markscript run` writes document output after the entry resolves;
-- every emitted MarkScript code has one authored `.ms` page.
+- Checks and compilation complete without source-program side effects.
+- All transforms finish before validation. All ready callbacks see a frozen root.
+- A TypeScript error in an imported `.ms` file appears on that file.
+- `markscript run` writes document output after entry resolution.
+- Each emitted MarkScript code has one authored `.ms` page.
 
-Use this sentence to choose the smallest test that exercises the public
-contract.
+Use the sentence to select the smallest test that exercises the public contract.
 
 ### 3. Edit the defining package first
 
-Implement the behavior in the package that defines the invariant. Update its
-direct types at the same time. Then update public re-exports, CLI/LSP adapters,
-manuals, and the design wherever the public contract changes.
+Implement the behavior in the package that defines the invariant. Update its direct types at the same time.
+Then update public reexports, CLI and LSP adapters, manuals, and design for public contract changes.
 
-Runtime and compiler emit stable codes and concise local messages with no
-manuals dependency. The CLI and language server add catalog links after the
-manuals package is available.
+Runtime and compiler emit stable codes and short local messages without a manuals dependency.
+The CLI and language server add catalog links after the manuals package is available.
 
 ### 4. Verify locally, then across package dependencies
 
-Run the narrowest meaningful command while iterating. When the change crosses
-packages or generated outputs, run the ordered root build and full checks.
+During changes, run the smallest meaningful verification command.
+For changes across packages or generated outputs, run the ordered root build and full checks.
 
-### 5. Inspect generated changes
+### 5. Examine generated changes
 
-Generated files, lockfiles, declarations, bundles, and copied extension assets
-may change. Inspect each relevant output. Remove stale renamed artifacts and
-preserve unrelated files.
+Generated files, lockfiles, declarations, bundles, and copied extension assets can change.
+Examine each applicable output. Remove stale renamed artifacts. Keep unrelated files.
 
 ## Standard commands
 
@@ -164,9 +151,8 @@ bun run build
 bun run check
 ```
 
-`bun run check` runs Biome, TypeScript, and the test suite. Run `bun run build`
-when compiled manuals, declarations, package bundles, or extension assets must
-be refreshed.
+`bun run check` runs Biome, TypeScript, and tests.
+To update compiled manuals, declarations, package bundles, or extension assets, run `bun run build`.
 
 Product verification commands include:
 
@@ -180,8 +166,8 @@ bun run msdocs build packages/manuals/msdocs.config.ts \
   --out-dir /tmp/markscript-site
 ```
 
-Use an explicit, narrow path under `/tmp`. A workspace root or source file is
-an invalid output target for these commands.
+Use an explicit, limited path under `/tmp`.
+These commands reject a workspace root or source file as an output target.
 
 ## Biome and TypeScript
 
@@ -194,12 +180,11 @@ bun run biome:fix
 bun run format
 ```
 
-The project style uses two-space indentation, an 80-column formatter target,
-single quotes, no routine semicolons, bracket spacing disabled, and trailing
-commas where valid. Use the formatter for large mechanical changes.
+The project uses two-space indentation, an 80-column format target, single quotes, no routine semicolons, no bracket spacing, and valid trailing commas.
+Use the formatter for large mechanical changes.
 
-Biome excludes declarations and built distributions. Formatting fixes belong
-in the source or generator that produces those files.
+Biome excludes declarations and build distributions.
+Put format corrections in their source or generator.
 
 The root TypeScript configuration uses strict checking, ES2022, ESM bundler
 resolution, exact optional properties, unchecked-index awareness, and the
@@ -207,57 +192,51 @@ MarkScript JSX runtime. Package declaration builds extend that configuration.
 
 ## Testing policy
 
-Prioritize tests for semantic contracts and regressions that require substantial
-investigation or recovery.
+Give priority to semantic contracts and regressions with high investigation or recovery costs.
 
 High-value targets include:
 
-- check/compile non-execution;
-- `.ms` import graph resolution and cycles;
-- TypeScript and bundle source mapping back to `.ms`;
-- MDAST context, field, single-parent, and deep-freeze invariants;
-- annotation attachment and merge order;
-- transform/ready sequencing, async waiting, and concurrent isolation;
-- CLI output only after ready callbacks;
-- full supported MDAST serialization through the public API;
-- emitted-code/manual integrity;
-- rejection of stale asynchronous LSP results before publication.
+- Static behavior of checks and compilation.
+- `.ms` import graph resolution and cycles.
+- TypeScript and bundle maps to original `.ms` source.
+- MDAST context, field, single-parent, and deep-freeze invariants.
+- Annotation attachment and merge order.
+- Transform and ready order, async waits, and concurrent isolation.
+- CLI output after ready callbacks.
+- full supported MDAST serialization through the public API.
+- Emitted-code and manual integrity.
+- Rejection of stale asynchronous LSP results before publication.
 
-Direct getters, static manifest fields, direct re-exports, and basic option
-spelling rarely need dedicated tests. Add a test through the public API that
-fails when the stated invariant regresses.
+Direct getters, static manifest fields, direct reexports, and basic option spelling rarely have sufficient risk for separate tests.
+Add a public API test that fails if the invariant regresses.
 
-Report mock results as unit-level evidence. An integration claim requires an
-available integration or runtime path; otherwise report source-contract
-validation and identify the untested environment.
+Report mock results as unit-test evidence.
+Verify integration claims through an actual integration or runtime path.
+Otherwise, report source-contract validation and identify the untested environment.
 
 ## Generated files
 
 The following are outputs:
 
-- package `dist/` bundles;
-- package `types/` declarations;
-- the compiled catalog beneath `packages/manuals/dist/`;
-- copied manual sources and embedded type environment under
-  `packages/vscode-markscript/`;
-- static sites emitted by `@markscript/msdocs` into the selected output
-  directory.
+- Package `dist/` bundles.
+- Package `types/` declarations.
+- Compiled catalog under `packages/manuals/dist/`.
+- Copied manual sources and embedded type environment under `packages/vscode-markscript/`.
+- Static sites from `@markscript/msdocs` in the selected output directory.
 
-Edit source and build scripts, then rebuild. The build produces compiled manual
-JavaScript. When a source is renamed, verify that its stale compiled entry, map,
-and copied extension asset disappear.
+Edit source and build scripts. Then rebuild. The build makes compiled manual JavaScript.
+After a source rename, verify removal of the stale compiled entry, map, and copied extension asset.
 
-The manuals build executes repository `.ms` pages after runtime and compiler
-are built. Keep those pages deterministic and free of external network, time,
-or machine-specific dependencies.
+The manuals build executes repository `.ms` pages after runtime and compiler builds.
+Keep pages deterministic and free of network, clock, and machine-specific dependencies.
 
 ## Diagnostic information for tools
 
-Every MarkScript diagnostic should provide three exact fields:
+Each MarkScript diagnostic must give three exact fields:
 
-1. a stable code;
-2. the precise emitted message and location/path;
-3. a manual command and document link.
+1. A stable code.
+2. The exact emitted message and location or path.
+3. A manual command and document link.
 
 ```text
 ERR1104: flow node produced by <h2> is invalid in phrasing context
@@ -265,26 +244,24 @@ Help: markscript help ERR1104
 Docs: file:///.../ERR1104.ms
 ```
 
-Read the exact page before choosing a fix. The page is Markdown for direct
-reading and MDAST for structural tools. Each code maps directly to its
-canonical page.
+Read the exact page before a correction. Markdown supports direct reading. MDAST supports structural tools.
+Each code maps directly to its page.
 
-When adding a code, add its `.ms` page in the same change. Allocate by subsystem
-and place explanation prose in that page. See the diagnostics and manual
-authoring handbook for the full workflow.
+Add a code and its `.ms` page in the same change.
+Assign the number by subsystem. Put explanations in that page.
+Refer to the diagnostics and manual authoring handbook for the full workflow.
 
 ## Volar language server workflow
 
-The Volar language server adapts the compiler's canonical projection through
-`@markscript/language-core` and supplies TypeScript and Markdown editor
-features. Compiler `check` remains the diagnostic authority: it receives
-unsaved open documents through `sourceOverrides`, groups imported-file
-diagnostics by URI, converts one-based compiler positions to zero-based UTF-16
-LSP ranges, and attaches manual links through `codeDescription`.
+The Volar server adapts the compiler's projection through `@markscript/language-core`.
+It gives TypeScript and Markdown editor features.
+Compiler `check` gives diagnostics and receives unsaved documents through `sourceOverrides`.
+It groups imported-file diagnostics by URI and converts one-based positions to zero-based UTF-16 LSP ranges.
+It attaches manual links through `codeDescription`.
 
-Validation is debounced. Each document URI has a generation counter, and only
-the current generation may publish results. Any change to that queue should be
-tested with deliberately reordered async completion.
+Validation uses a debounce delay. Each document URI has a generation counter.
+Only the current generation can publish results.
+For validation queue changes, verify deliberately reordered asynchronous completion.
 
 The extension supports these settings:
 
@@ -294,67 +271,60 @@ The extension supports these settings:
 | `markscript.server.runtime` | Bun executable used by the VS Code client |
 | `markscript.server.path` | Optional custom language-server module |
 
-Volar follows normal TypeScript project ownership using the nearest
-`tsconfig.json` or `jsconfig.json`, with inferred projects outside configured
-projects. The server dynamically watches `.ms`, TypeScript/JavaScript,
-supported image assets, tsconfig, jsconfig, and package files. The extension
-build bundles the client and server, embeds the type environment required for
-standalone checks, and copies authored manual sources. Verify both the source
-package and built extension when changing module resolution or manual URLs.
+Volar uses the nearest `tsconfig.json` or `jsconfig.json` for TypeScript project ownership. Files outside configured projects use inferred projects.
+The server watches `.ms`, TypeScript and JavaScript, image assets, tsconfig, jsconfig, and package files.
+The extension build bundles the client and server, embeds standalone type declarations, and copies authored manuals.
+For module resolution or manual URL changes, verify the source package and built extension.
 
 ## Worktree and dependency changes
 
-Treat unrelated changes as user or collaborator work. Inspect the assigned files
-before editing, review the assigned diff afterward, and preserve all other
-changes.
+Treat unrelated changes as user or collaborator work. Examine assigned files before edits.
+Review the assigned diff after edits. Keep all other changes.
 
 When adding a dependency:
 
-- prefer the official library that implements the needed syntax or protocol;
-- add it to the package that imports it directly;
-- refresh `bun.lock` with Bun;
-- verify the dependency is bundled or externalized intentionally;
-- use the existing MDAST for a small, cohesive implementation when it already
-  supports the requirement.
+- Use the official library for the required syntax or protocol where possible.
+- Add it to the package that imports it directly.
+- Update `bun.lock` with Bun.
+- Verify the selected bundle or external import behavior.
+- Use existing MDAST for a small implementation when it supports the requirement.
 
-For example, Markdown output uses official MDAST serializer extensions because
-the runtime accepts GFM and frontmatter nodes. Terminal help traverses the
-catalog's parsed MDAST directly.
+Markdown output uses official MDAST serializer extensions for the runtime's GFM and frontmatter nodes.
+Terminal help traverses the catalog's parsed MDAST directly.
 
 ## Review checklist
 
-Before handing off a change, answer these questions:
+Before delivery, answer these questions:
 
 - Does the implementation match `markscript_design.md`?
-- Is the dependency direction preserved?
+- Is the dependency direction kept?
 - Could check, compile, LSP, or bundling execute user code now?
 - Does the callable default entry still return `Promise<mdast.Root>`?
 - Are transform, validation, freeze, ready callbacks, and CLI output still ordered?
 - Does every new emitted code have exactly one `.ms` manual?
-- Were only canonical source files edited by hand?
+- Were only authored source files edited by hand?
 - Do named output formats and CLI options match the current design exactly?
 - Is there one meaningful regression test for the changed invariant?
 - Did Biome, TypeScript, focused tests, and the required build pass?
-- Were generated outputs and stale renamed files inspected?
-- Were unrelated worktree changes preserved?
+- Were generated outputs and stale renamed files examined?
+- Were unrelated worktree changes kept?
 
-Report verification precisely. List source checks, local execution, packaged
-extension tests, and each runtime environment that remains untested.
+Report verification exactly. List source checks, local execution, packaged extension tests, and each untested runtime environment.
 
 ## Repository documentation requirements
 
-Keep repository guidance navigable:
+Keep these repository references clear:
 
-- stable implementation locations in `AGENTS.md`;
-- `markscript_design.md` as the product contract;
-- small packages with explicit dependency order;
-- exact error codes and human Markdown manuals;
-- generated artifacts derived from inspectable `.ms` sources;
-- non-execution requirements expressed in code and tests;
-- source pointers by concern and cohesive modules;
-- commands that reproduce verification locally;
-- compatibility paths absent from unshipped APIs.
+- Stable implementation locations in `AGENTS.md`.
+- Product contract in `markscript_design.md`.
+- Small packages with explicit dependency order.
+- Exact error codes and human-readable Markdown manuals.
+- Generated artifacts from `.ms` sources that readers can examine.
+- Static processing requirements in code and tests.
+- Source locations by subject and modules with defined scope.
+- Commands that reproduce local verification.
+- Current contracts for unshipped APIs, without compatibility paths.
 
-When adding a subsystem, update these references. Document its canonical
-source, public API, failure code where appropriate, and stable behavior. Add
-regression tests for the semantic contracts listed in the testing policy.
+For a new subsystem, update these references.
+Document its source, public API, applicable failure code, and stable behavior.
+Add regression tests for the contracts in the testing policy.

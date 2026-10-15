@@ -1,8 +1,7 @@
 # TUT1002 — Markdown, expressions, and JSX
 
-This basic tutorial covers the source forms that produce a MarkScript document.
-Complete [TUT1001](./TUT1001.ms) first so the workspace and command workflow are
-ready.
+This basic tutorial covers source forms that make MarkScript documents.
+First, complete [TUT1001](./TUT1001.ms) to prepare the workspace and commands.
 
 ## Source forms
 
@@ -17,8 +16,8 @@ MarkScript accepts six document forms:
 | Uppercase JSX  | Call a typed component function                  |
 | `attach()`     | Attach expression-valued data to the next node   |
 
-This tutorial uses Markdown, expressions, and lowercase JSX. Components,
-directives and attached data are covered in [TUT1003](./TUT1003.ms).
+This tutorial uses Markdown, expressions, and lowercase JSX.
+[TUT1003](./TUT1003.ms) covers components, directives, and attached data.
 
 ## Write structure in Markdown
 
@@ -39,7 +38,7 @@ The **production** release completed on schedule.
 See the [release record](./release.json).
 ```
 
-These constructs produce standard MDAST nodes such as `heading`, `paragraph`,
+These constructs make standard MDAST nodes such as `heading`, `paragraph`,
 `strong`, `list`, and `link`.
 
 ## Insert TypeScript values
@@ -58,19 +57,18 @@ Median latency: {latencyMs} ms.
 {healthy && <p><strong>Status:</strong> healthy</p>}
 ```
 
-The runtime normalizes expression results according to the current document
-context:
+The runtime normalizes expression results with the current document context:
 
-| Value                              | Result                                                |
-| ---------------------------------- | ----------------------------------------------------- |
-| string or number                   | Text in phrasing content; a paragraph in flow content |
-| `null`, `undefined`, or `false`    | No emitted node                                       |
-| array or fragment                  | Items flattened in source order                       |
-| MarkScript element                 | The element's MDAST node or nodes                     |
-| MDAST node or root                 | Validated and inserted in the current context         |
-| promise returned by the expression | Awaited before insertion                              |
-| `true`                             | Runtime error                                         |
-| unsupported object or function     | Runtime error                                         |
+| Value | Result |
+|---|---|
+| String or number | Text in phrasing content. A paragraph in flow content |
+| `null`, `undefined`, or `false` | No emitted node |
+| Array or fragment | Flattened items in source order |
+| MarkScript element | The element's MDAST nodes |
+| MDAST node or root | Validation and insertion in the current context |
+| Direct expression promise | Promise resolution before insertion |
+| `true` | Runtime error |
+| Unsupported object or function | Runtime error |
 
 Format application objects into a supported value:
 
@@ -92,10 +90,9 @@ import { loadSummary } from './summary.ts'
 {loadSummary()}
 ```
 
-`loadSummary()` must resolve to a supported document value. Combine several
-asynchronous operations in the imported function and return one promise to the
-document expression. The compiler supplies the document-level await. Explicit
-top-level `await` is outside the `.ms` source grammar.
+`loadSummary()` must resolve to a supported document value.
+Combine asynchronous operations in the imported function. Return one promise to the document expression.
+The compiler gives document-level await. The `.ms` source grammar excludes explicit top-level `await`.
 
 ## Create Markdown nodes with JSX
 
@@ -120,7 +117,7 @@ Lowercase JSX names map to a fixed set of MDAST constructors:
 </ol>
 ```
 
-The complete built-in vocabulary is:
+The full built-in vocabulary is:
 
 | Group                   | JSX names                                   |
 | ----------------------- | ------------------------------------------- |
@@ -129,12 +126,11 @@ The complete built-in vocabulary is:
 | Flow                    | `blockquote`, `ul`, `ol`, `li`, `pre`, `hr` |
 | Grouping                | fragment `<>...</>`                         |
 
-Attributes follow the MDAST shape. For example, `a` requires `href`, `img`
-requires `src` and `alt`, and `ol` accepts a non-negative integer `start`.
-The `pre` constructor accepts one `code` child and creates a block code node.
+Attributes use MDAST structures. `a` must have `href`. `img` must have `src` and `alt`.
+`ol` accepts a non-negative integer `start`.
+`pre` accepts one `code` child and creates a block code node.
 
-Use the [language handbook](../handbooks/HBK1001.ms) for the complete prop and
-lowering reference.
+Refer to the [language handbook](../handbooks/HBK1001.ms) for full prop and MDAST conversion rules.
 
 ## Keep content in its valid context
 
@@ -164,12 +160,11 @@ A heading inside a paragraph violates the content model:
 This paragraph contains {<h2>A flow heading</h2>}.
 ```
 
-Other invalid structures include a link inside another link, `li` outside a
-list, and `pre` with a child other than one `code` element.
+Other invalid structures include a nested link, `li` outside a list, and `pre` without exactly one direct `code` child.
 
-## Inspect the result
+## Examine the result
 
-Check the source, then render the finalized MDAST:
+Check the source. Then render finalized MDAST:
 
 ```sh
 bun run markscript check docs/report.ms

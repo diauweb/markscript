@@ -2,12 +2,11 @@
 
 ## Problem
 
-The same MDAST node object appears at more than one child path, or a node's
-children contain one of its ancestors. The diagnostic path identifies the
-repeated use, and the message reports the first path. Each location in the
-document tree must contain a distinct node object.
+The same MDAST node object appears at multiple child paths, or a node's children contain an ancestor.
+The diagnostic path identifies the repeated use. The message gives the first path.
+Each location in the document tree must contain a different node object.
 
 ## Fix
 
-Construct a fresh MDAST node for every insertion. Clone the complete reused
-subtree for each location. Remove child references that point to an ancestor.
+Construct a new MDAST node for each insertion. Clone the full subtree at each insertion location.
+Remove child references to ancestors.

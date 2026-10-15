@@ -1,11 +1,10 @@
 # TUT1006 — Build and publish an msdocs site
 
-This advanced tutorial turns MarkScript documents into a static website. It
-starts with one page, then defines multi-page navigation and custom MDAST
-rendering.
+This advanced tutorial converts MarkScript documents to a static website.
+It starts with one page. Then it defines navigation for multiple pages and custom MDAST rendering.
 
-The examples use the repository command `bun run msdocs`. A project with the
-package binary installed can use `msdocs` directly.
+Examples use the repository command `bun run msdocs`.
+With the package binary installed, a project can use `msdocs` directly.
 
 ## Build one page
 
@@ -29,9 +28,8 @@ bun run msdocs build docs/release-notes.ms \
   --out-dir build/release-notes
 ```
 
-msdocs checks and executes the `.ms` entry, renders its MDAST as HTML, and
-writes a static site. The first level-one heading becomes the page and site
-title.
+msdocs checks and executes the `.ms` entry, renders MDAST as HTML, and writes a static site.
+The first level-one heading becomes the page and site title.
 
 The output directory contains:
 
@@ -54,8 +52,7 @@ bun run msdocs build docs/release-notes.ms \
   --out-dir build/release-notes
 ```
 
-`--transpile-only` skips semantic TypeScript checking and still executes the
-document and validates its final MDAST.
+`--transpile-only` omits semantic TypeScript checks. It still executes the document and validates final MDAST.
 
 ## Preview the site
 
@@ -72,13 +69,11 @@ Open `http://127.0.0.1:4173`. The preview server accepts `GET` and `HEAD`,
 serves generated files, redirects directory indexes, and uses the generated
 `404.html` page.
 
-`serve` performs one build when it starts. Restart the command after changing a
-source file.
+`serve` builds once at startup. After a source file change, restart the command.
 
 ## Define a multi-page site
 
-A multi-page build reads a JavaScript or TypeScript module whose default export
-is a `SiteDefinition`.
+A build with multiple pages reads a JavaScript or TypeScript module with `SiteDefinition` as its default export.
 
 Create two page sources:
 
@@ -129,9 +124,8 @@ bun run msdocs build msdocs.config.ts --out-dir build/site
 bun run msdocs serve msdocs.config.ts --out-dir build/site --port 4173
 ```
 
-Importing the configuration module executes its top-level code. Each `runFile`
-call executes the corresponding MarkScript document and returns its finalized
-root.
+A configuration module import executes its top-level code.
+Each `runFile` call executes the corresponding document and returns its finalized root.
 
 ## Assign page paths
 
@@ -143,18 +137,15 @@ Each `SitePage.path` maps to one HTML file:
 | `guides/`      | `guides/index.html` |
 | `guides/setup` | `guides/setup.html` |
 
-Paths are relative URL paths. msdocs rejects duplicate paths, colliding output
-filenames, absolute paths, backslashes, and unsafe path segments before writing
-the site.
+Paths are relative URL paths.
+Before output, msdocs rejects duplicate paths, colliding filenames, absolute paths, backslashes, and unsafe segments.
 
-Links between generated `.ms` or `.md` pages are rewritten to their HTML paths
-when the destination belongs to the same site.
+msdocs rewrites links between generated `.ms` or `.md` pages to HTML paths if the destination is in the same site.
 
 ## Customize MDAST rendering
 
-msdocs converts MDAST to HAST with `mdast-util-to-hast`. Unknown node types and
-their children produce no HTML by default. A site can provide standard handlers
-for application nodes.
+msdocs converts MDAST to HAST with `mdast-util-to-hast`. By default, unknown nodes and their children make no HTML.
+A site can give standard handlers for application nodes.
 
 This example renders every otherwise unknown node as `<mark>`:
 
@@ -181,16 +172,14 @@ fallback. Each handler defines the generated tag, properties, and children.
 
 ## Rebuild generated files
 
-`.msdocs-manifest.json` records every path generated in the output directory.
-On the next build, msdocs overwrites recorded files, removes recorded files that
-are absent from the new site, and preserves unrelated files.
+`.msdocs-manifest.json` records each generated path.
+On the next build, msdocs replaces recorded files and removes those absent from the new site. It keeps unrelated files.
 
 An existing destination file outside the manifest causes the build to fail.
-This prevents a site build from replacing files created by another process.
+The site build thus keeps files from other processes.
 
-Edit source pages, the site definition, or the msdocs public assets, then run
-the build again. Changes made directly to generated HTML are replaced on the
-next build.
+Edit source pages, the site definition, or msdocs public assets. Then build again.
+The next build replaces direct changes to generated HTML.
 
 ## Publish the static directory
 
@@ -202,12 +191,11 @@ bun run build
 bun run msdocs build msdocs.config.ts --out-dir dist/manual
 ```
 
-Publish the contents of `dist/manual` with a static hosting service. The host
-serves the HTML files and `assets/` directory; Bun and MarkScript are required
-during the build.
+Publish `dist/manual` content with a static hosting service.
+The host serves HTML files and `assets/`. Bun and MarkScript are necessary during the build.
 
-Configure the host to use `index.html` for directory indexes and `404.html` for
-missing pages. Upload the pages and assets from the same build.
+Configure the host to use `index.html` for directory indexes.
+Configure `404.html` for missing pages. Upload pages and assets from the same build.
 
 ## Verify the publication
 
@@ -220,8 +208,7 @@ bun run msdocs serve msdocs.config.ts \
   --port 4173
 ```
 
-Check the home page, navigation, generated links, custom nodes, assets, and 404
-response before publishing `dist/manual`.
+Before publication, check the home page, navigation, generated links, custom nodes, assets, and 404 response.
 
 ## Reference
 

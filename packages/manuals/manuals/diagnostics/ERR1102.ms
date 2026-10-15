@@ -2,13 +2,17 @@
 
 ## Problem
 
-An intrinsic, fragment, or component received an
-unsupported attribute, an invalid attribute value, invalid props, children
-where none are allowed, or a JSX key.
+An intrinsic, fragment, or component received one of these invalid arguments:
+
+- An unsupported attribute or an invalid attribute value.
+- Invalid props.
+- Children in an element that accepts none.
+- A JSX key.
 
 ## Fix
 
-Match the element's declared props exactly. Remove unsupported attributes and
-keys, supply required values with the documented type, and remove children
-from void elements. Directive attributes without inner braces are strings;
-use `{expression}` for TypeScript values and `{{...}}` for object literals.
+Use the element's declared props exactly. Remove unsupported attributes and keys.
+Give required values with the documented type. Remove children from void elements.
+
+Directive attributes without inner braces are strings.
+Use `{expression}` for TypeScript values. Use `{{...}}` for object literals.
