@@ -1766,7 +1766,291 @@ This boundary defines the core. Standard TypeScript libraries give application b
 
 ---
 
-# 28. Feasibility references
+# 28. msh execution contexts and imported extensions
+
+`msh` is an unpublished leaf package for persistent MarkScript execution contexts and trusted Bun execution.
+Core operations are `spawn`, `send`, `inspect`, `wait`, and `exec`.
+The core controls identities, named export bindings, immutable module origins, rendered document contributions, inert message records, and mailboxes.
+It also controls child ownership, execution generations, cancellation, and cleanup.
+
+A context becomes an agent through installation of the imported `agent` extension.
+The `approval` extension gives authorization policy and review.
+The CLI and WebUI shell combines these extensions explicitly through `createShell`.
+`createHarness` in `msh/core` constructs the generic kernel.
+
+## Extension activation and lifetime
+
+Modules export descriptors from `defineExtension(name, setup)`. An import activates the descriptor in the current context.
+This includes local dependency imports and reexports. Cached ESM loading and per-context setup have separate lifetimes.
+Imported descriptors activate before the consuming document renders. Repeated imports reuse one installation per generation.
+
+Each activation owns hooks, event listeners, services, runners, and cleanup.
+Runners start after context and binding installation commits.
+Failed preparation removes staged registrations and cancels staged work.
+Replacement removes the previous generation's registrations. Host-installed extensions stay active.
+
+Scopes expose `hook`, `on`, `provide`/`get`, `run`, `cleanup`, and staged `onCommit`.
+Hooks resolve in registration order. Event callbacks see ordered records. Their failures do not stop execution.
+Core hooks cover module evaluation, managed invocation, context preparation and replacement, inert message delivery, and input processing.
+
+`evaluate.before` executes before module loading.
+`evaluate.ready` executes after imported extension activation and before document rendering or code entry.
+The generic input driver can be a model loop, deterministic program, or another imported execution policy.
+
+Owned runners receive thread identity, invocation identity, working directory, generation, and an AbortSignal.
+Parent termination ends descendants and removes owned resources.
+A code entry return ends its thread. Reusable contexts become idle between inputs.
+
+The `agent` extension controls providers, model requests, conversation roles, tool-call fence conversion, typed JSON ability schemas, and fixed native interfaces.
+It also controls continuation limits and prompt and context policy.
+The `approval` extension controls source evidence, user-request provenance, review, human decisions, and policy presentation.
+
+The first agent in a generic context adopts its prepared instructions, inert messages, and callable bindings.
+A replacement agent imported during a turn transfers the driver. It keeps the conversation and fixed native interface.
+
+Libraries and extensions give workspace operations, compaction, persistence, traces, providers, credentials, and browser presentation.
+Core inspection returns bindings, document records, active extension origins, and lifecycle state.
+The agent inspector gives conversation and model-tool views. Compaction keeps imported extension origins and selected function bindings.
+
+## Instructions and conversation
+
+`spawn({instructions, messages})` creates a reusable child context. An installed agent extension gives LLM execution.
+`exec` takes the same structure. Instructions are separate from the conversation.
+Strings, module references `{module, input?}`, and imported document callables prepare initial instruction text and bindings.
+
+`{text: string}` gives prepared instruction text without compilation or rendering.
+Compaction and replacement can thus reuse exact instruction text. The runtime gives its protocol on each request.
+Shared instructions precede cwd and thread identity in the request prefix.
+
+`messages` contains inert conversation documents. Strings are inline source.
+`.ms` references and imported document callables give source without evaluation or import of historical code.
+Message references accept no render input. Standard Markdown represents assistant content.
+A top-level `:::user` directive quotes literal user content, including braces, imports, and other delimiters.
+
+The `user(text)` serializer selects a delimiter longer than any colon delimiter in the content.
+The WebUI and `host.turn` use it for incoming input.
+The document represents roles directly. Internal provider records use this representation.
+
+Structured records use code fences directly:
+
+````markscript
+```tool-call id=c1 name=read
+{"file":"package.json"}
+```
+
+```tool-result id=c1
+"Observed contents"
+```
+````
+
+A tool-call fence has `id` and `name` attributes and a JSON argument object.
+A tool-result fence has the same `id` and a JSON body. Metadata accepts bare values or JSON-quoted strings.
+Protocol fences must have closing delimiters. An inert `reasoning` fence can keep provider reasoning.
+
+Native calls and emitted action fences normalize to the same records.
+In live emissions, explicit call fences execute in order between document expressions.
+The runtime gives results. Standard code fences are inert examples.
+
+Context messages, deliveries, and saved history are inert. Their import repeats no actions and installs no exports.
+Context replacement validates full call/result pairs and unique IDs.
+Instructions prepare bindings. New assistant emissions execute actions.
+
+`send` accepts inert conversation documents or reserved controls. Peer input uses user quoting for the recipient.
+
+## Abilities and the native interface
+
+After successful evaluation, the core keeps standard named exports.
+The agent extension projects typed callable exports into abilities. TypeScript analysis gives JSON schemas and TSDoc descriptions.
+
+A plain import creates a local binding. A reexport installs an ability.
+A single object argument is flattened in native JSON input. Other arguments use parameter names.
+
+Each context generation fixes its native interface: five kernel tools, initial instruction abilities, and `call({name, arguments})`.
+Later exports keep the same native names, descriptions, schemas, and order.
+They are callable directly from JS/MarkScript or through native call.
+
+The dispatcher exists only in the adapter. It has no JS export or implicit binding and adds no kernel operation.
+Runtime feedback and inspection give current ability schemas and origins.
+An ability with the name call stays separate from the native dispatcher.
+
+Redefinition updates future calls. Active calls keep their implementation. Initially native abilities keep their argument schema until exec.
+Dynamic abilities can change signatures. The dispatcher validates the current signature at call time.
+The five kernel operation names stay reserved.
+
+New abilities and their feedback append to the conversation.
+The earlier request prefix stays the same because tool definitions stay fixed.
+Actual cache hits depend on the provider.
+
+Emissions compile through immutable in-memory modules. Inline paths resolve from cwd. Imported documents keep their origins.
+Export bindings survive imports without repeated rendering of earlier document actions.
+Compiled MarkScript callables keep their `Promise<mdast.Root>` ABI and DOCUMENT origin, source, and binding metadata.
+
+Static checks and compilation process source without execution.
+JS/TS code threads use a module namespace or `{module:'./worker.ts'}` with a default entry. They inherit cwd and provider.
+
+## Lifetime and context replacement
+
+`send(target, message)` queues input for one or more handles. The descendants target broadcasts below the caller and excludes the caller.
+Interrupt cancels current work and keeps an LLM thread. Terminate ends the subtree.
+Messages enter processing between execution steps.
+
+`wait(handle)` waits until current work stops. It returns immediately for idle or dead targets.
+`wait()` consumes pending or next input without lost wakeups. Standard input stays queued during child waits.
+Inspection never consumes input.
+
+The agent inspector gives state, active instructions, conversation documents, recent and full history, readable conversation, module identities, native tools, and current abilities.
+Active context and full historical records are separate views.
+
+`exec({instructions, messages})` prepares instructions, validates history, and prepares bindings.
+Then it commits the replacement view and native interface. Failure keeps the old view.
+External preparation effects are not transactional.
+
+Success skips remaining old actions, closes abandoned historical call records, and transfers execution.
+Identity, history, inbox, and children survive. Explicit reexports keep selected bindings. Omitted abilities disappear.
+The next request contains only the replacement conversation, instructions, and runtime protocol.
+
+Only completed model emissions execute. Streaming gives display text only. Expressions use implicit await with the language contract.
+Actions and diagnostics continue generation. Text and declarations alone can end a turn.
+
+Parse, evaluation, and argument errors return visible diagnostics.
+Provider failures and run limits leave results available for inspection on reusable LLM threads.
+
+## Policies, interface and saved records
+
+Editable workspace, worker, and compaction modules give policy. Workspace and worker prompts import the full usage guide.
+Tests execute its code examples. The workspace library gives read, list, search, write, replace, and bounded commands with cancellation.
+
+Compaction summarizes in a separate thread. It reuses prepared instruction bytes and explicitly keeps bindings.
+It installs an inert quoted summary through exec. Concurrent parent changes invalidate the summary.
+
+### Before-action policy and approval UI
+
+The host calls a cancellable before-action hook at native tool dispatch, executable documents, code entries, abilities, commands, and file edits.
+An embedded application can install `Options.beforeAction` to examine or reject a concrete proposal before execution.
+The kernel keeps its five operations.
+
+The host selects a MarkScript approval policy with the export `beforeAction(action, services)`.
+The default `approval-policy.ms` enables **Approve for me**.
+An isolated model request reviews proposed source, arguments, or edits against direct host user requests inherited through thread ownership.
+The reviewer has no tools. The runtime parses its output as a decision.
+Thread-authored messages and runtime feedback give no authorization.
+
+Inert declarations and built-in read-only abilities proceed directly. General code, shell commands, and writes must have approval.
+For incomplete source evidence, uncertainty, or reviewer failure, get a human decision.
+With automatic approval off, these actions must have manual decisions.
+
+Policy calls `services.approve(reason)`, `services.deny(reason)`, or `services.ask(reason, {title, body, choices})`.
+The body is a standard rendered MarkScript document (`mdast.Root`). The policy gives the title and approval and denial labels.
+The host controls suspension and gives the user's decision. A policy return without explicit approval stops the action.
+
+Host configuration selects a custom policy with `--approval-policy`.
+A model tool cannot give approval decisions or change approval mode.
+
+Inspection gives thread states `reviewing` and `approval`, with pending requests. Approval applies once to the proposed action.
+Before execution, the host rechecks file contents, resolved edit targets, and module sources. If evidence changes, make a new attempt.
+Cancellation removes pending decisions and prevents a late review from starting the action again.
+
+Denial ends the current turn. Denial during initial context preparation closes the local session with an error.
+Noninteractive uncertainty returns an approval-required error. Approval events and decisions enter saved history.
+Execution uses trusted Bun code. Review hooks give authorization workflow.
+
+Isolation of hostile code must use a separate process or operating-system boundary.
+
+The local WebUI uses React, TypeScript, and Kumo UI. Vite makes the browser assets in msh.
+`msh chat` in a terminal starts interactive mode. `--web` selects the WebUI explicitly, including with an initial `--prompt`.
+`msh demo --web` starts the demo without credentials.
+
+The Bun HTTP server binds to `127.0.0.1` and selects an available port by default.
+`--port` selects a specified port. The server prints a browser URL with a per-process session token in its fragment.
+Browser requests include this token and pass an exact local-origin check. Provider keys stay in the local process.
+
+HTTP commands call shell services. Server-sent snapshots include streamed text, thread state, and pending approvals.
+Reconnection receives a full current snapshot. Initialization starts after the first browser connection.
+Thus, approval UI is available during preparation.
+
+The streamed conversation and multiline composer stay in the main area.
+The interface has a thread list and context, ability, history, and help inspectors.
+Header and composer actions accept clicks. Enter sends input. Ctrl+J or Shift+Enter inserts a newline.
+
+Tab and Shift+Tab move between browser controls. Ctrl+B shows or hides threads.
+Ctrl+K opens or closes commands. F1 opens help.
+Close an inspector with Close, Escape, or its command. The interface restores earlier focus.
+
+Command rows accept mouse selection or Up/Down with Enter.
+Kumo dialogs keep keyboard focus inside the window. Close them with Escape, Close, or a backdrop click.
+Compact layouts use thread lists and inspectors over the main area. Controls stay inside the viewport.
+
+Prepared context records keep their finalized `mdast.Root` and the Markdown text for model context.
+Completed assistant emissions attach the evaluated document to history messages through a `message.rendered` event.
+Conversation cards display it through MDAST-to-HAST conversion and React rendering.
+Expressions, async components, directive annotations, and lifetime transforms resolve during the existing execution.
+
+Source previews stay literal during streaming. Finalized documents replace them after evaluation.
+Message details keep the original MarkScript source. Evaluation failures show their diagnostic.
+Thread inputs have a static label. They display document markup through a static MarkScript projection.
+
+Static JSX intrinsics and directive groups give standard document structure.
+Module declarations, expressions, and unresolved components display as code.
+Input source stays inert in model context and saved history.
+Runtime feedback has its own label with evaluated observations and an ability list.
+Raw feedback stays available for provider context and expanded details.
+
+The server gives presentation cards for each thread and saved conversation.
+Cards have consistent gaps between entries. Document margins stay inside each body.
+Saved conversations use rendered message records. Instructions and approval bodies use the same document renderer.
+Each document has separate anchor and footnote identifiers.
+
+The browser renderer sanitizes HTML properties and URLs. Unknown node types make no output, as in the baseline adapter.
+Tool summaries pair calls and results in historical order and show execution state.
+Reasoning, arguments, full output, and metadata expand on request.
+
+Click a heading to show details. Alternatively, use Up/Down with Enter or Space in the conversation.
+Left/Right collapses or expands details. PageUp/PageDown scrolls the focused pane.
+State labels, activity indicators, and elapsed time show active work.
+Thread rows and references in messages and results support mouse and keyboard navigation.
+
+Thread changes keep drafts, scroll positions, and disclosure choices, including access to terminated threads.
+Instructions and active conversation have separate views. Abilities identify fixed native access or dispatcher and direct access.
+Asynchronous menu and history results stay with their requested thread and window.
+
+Send queues input during an active turn. Ctrl+C or Stop interrupts the selected turn.
+Selected text keeps the browser copy shortcut.
+Approval dialogs use the policy's rendered document and choices. They initially focus Deny and accept keyboard or mouse selection.
+
+Escape keeps the action suspended while the user examines other panes. `/approvals` opens pending requests again.
+`/approve-for-me` changes automatic review mode. Both commands are in the command palette.
+Terminate closes the subtree. The palette also gives creation, compaction, provider and model changes, and export.
+
+`/export FILE` writes a new file in the selected thread's cwd.
+`.md` and `.ms` select conversation export. Other extensions select complete-run JSONL.
+The export dialog accepts a filename and uses the same operation.
+
+Ctrl+D with an empty composer or Quit closes the session and cleans up work.
+A closed browser leaves the local process available for reconnection. Terminal Ctrl+C closes the session.
+Noninteractive document output uses stdout. Operational diagnostics and the local browser URL use stderr.
+
+Inert JSONL events keep context snapshots, module identities, original emissions, normalized conversation documents, execution evidence, and lifecycle changes.
+Readers and exporters process recorded source without execution. JSONL export keeps the full run.
+Markdown export selects a thread and uses the role and fence representation.
+New processes create new threads. Existing saved files and profiles stay available.
+
+Optional LangSmith traces group work into threads, turns, model requests, tool calls, document evaluation, and ability execution.
+Child threads keep their parent execution relationship.
+Each model round records full request messages, tool definitions, assistant text, reasoning, tool calls, finish reason, and token usage.
+Streamed text has timestamps and stays available after cancellation or failure.
+Tool and activity spans record arguments, results, errors, and elapsed time.
+
+Successful `exec` closes the old execution as a context transfer.
+Unique execution IDs separate repeated provider call IDs and concurrent work.
+
+Tracing subscribes from thread creation through final cleanup. Shell closure waits for trace delivery and reports exporter failures.
+A flush during execution delivers the current trace state while work continues.
+Tracing uses the same inert runtime records as saved history, including full model-round content.
+Refer to `packages/msh/README.md` for the full interface and examples.
+
+---
+
+# 29. Feasibility references
 
 - **@mdx-js/mdx** — MDX compiler/evaluator and JSX runtime integration: https://mdxjs.com/packages/mdx/
 - **remark-mdx / MDX syntax** — MDX additions for JSX, expressions, and module syntax: https://mdxjs.com/packages/remark-mdx/

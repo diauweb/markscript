@@ -7,8 +7,7 @@ types/
 coverage/
 *.tsbuildinfo
 .markscript/
-.markscript-test/
-.markscript-*-test/
+.markscript-*/
 *.ms.mjs
 *.ms.mjs.map
 site/

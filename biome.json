@@ -9,7 +9,8 @@
       "!!**/.vscode-test",
       "!!**/.extension-test",
       "!!**/.markscript-test",
-      "!!**/.markscript-*-test"
+      "!!**/.markscript-*-test",
+      "!!packages/msh/.markscript-v1-*"
     ]
   },
   "formatter": {
@@ -39,5 +40,17 @@
       "semicolons": "asNeeded",
       "trailingCommas": "all"
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/msh/src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useHookAtTopLevel": "off"
+          }
+        }
+      }
+    }
+  ]
 }

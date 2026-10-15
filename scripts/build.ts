@@ -37,6 +37,18 @@ const bootstrapBuilds: PackageBuild[] = [
 
 const consumerBuilds: PackageBuild[] = [
   {
+    directory: 'packages/msh',
+    entrypoints: [
+      'src/index.ts',
+      'src/core.ts',
+      'src/kernel.ts',
+      'src/agent.ts',
+      'src/approval.ts',
+      'src/shell.ts',
+      'src/cli.ts',
+    ],
+  },
+  {
     directory: 'packages/docx',
     entrypoints: ['src/index.ts'],
     bundleDependencies: ['docx'],
@@ -62,6 +74,7 @@ for (const build of bootstrapBuilds) await buildPackage(build)
 // tools that directly import that compiled catalog.
 await runPackageScript('packages/manuals', 'build')
 
+await runPackageScript('packages/msh', 'web:build')
 for (const build of consumerBuilds) await buildPackage(build)
 
 await runPackageScript('packages/vscode-markscript', 'build')

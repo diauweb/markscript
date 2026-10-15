@@ -24,13 +24,15 @@
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
     "format": "biome format --write .",
-    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --filter './packages/*-mdx-directive' typecheck",
+    "typecheck": "tsc --noEmit -p tsconfig.json && bun run --filter './packages/*-mdx-directive' typecheck && bun run --filter msh web:typecheck",
     "test": "bun test",
     "markscript": "bun packages/markscript/src/cli.ts",
     "msdocs": "bun packages/msdocs/src/cli.ts",
+    "msh": "bun packages/msh/src/cli.ts",
     "manual": "bun run msdocs serve packages/manuals/msdocs.config.ts"
   },
   "devDependencies": {
+    "msh": "workspace:*",
     "@biomejs/biome": "2.5.7",
     "@markscript/docx": "workspace:*",
     "@markscript/manuals": "workspace:*",

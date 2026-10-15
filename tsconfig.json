@@ -25,5 +25,8 @@
     "test/**/*.tsx",
     "packages/**/src/**/*.js"
   ],
-  "exclude": ["packages/vscode-markscript/test-workspace/**"]
+  "exclude": [
+    "packages/vscode-markscript/test-workspace/**",
+    "packages/msh/web/**"
+  ]
 }
